@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: blue;
+            color: black;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -38,11 +38,11 @@
             console.error("Помилка при отриманні курсу НБУ:", err);
         });
 
-    function getDealData(recordId) {
-        if (!recordId) {
-            console.warn("Record ID не передан");
-            return;
-        }
+    // Подключение к Zoho и обработка сделки
+    ZOHO.embeddedApp.on("PageLoad", function(data) {
+        console.log("Page loaded", data);
+
+        const recordId = "862445000000518273";
 
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
@@ -66,28 +66,11 @@
                 document.getElementById("difference").textContent = "-";
             }
         });
-    }
+    });
 
-    function run() {
-        ZOHO.embeddedApp.init().then(() => {
-            console.log("ZOHO SDK завантажено");
-            const recordId = "862445000000518273";
-            getDealData(recordId);
-        });
-    }
-
-    // Функция для ожидания загрузки ZOHO SDK
-    function waitForZOHO(callback) {
-        if (typeof ZOHO !== "undefined") {
-            callback();
-        } else {
-            console.warn("ZOHO SDK ще не завантажено, повторна спроба через 100 мс...");
-            setTimeout(() => waitForZOHO(callback), 100);
-        }
-    }
-
+    // Инициализация Zoho SDK
     window.addEventListener("DOMContentLoaded", () => {
-        waitForZOHO(run);
+        ZOHO.embeddedApp.init();
     });
 </script>
 </body>
