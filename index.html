@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: red;
+            color: blue;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -68,20 +68,27 @@
         });
     }
 
-    // Ждём, пока SDK загрузится, и сразу инициализируем и запрашиваем данные
     function run() {
+        ZOHO.embeddedApp.init().then(() => {
+            console.log("ZOHO SDK завантажено");
+            const recordId = "862445000000518273";
+            getDealData(recordId);
+        });
+    }
+
+    // Функция для ожидания загрузки ZOHO SDK
+    function waitForZOHO(callback) {
         if (typeof ZOHO !== "undefined") {
-            ZOHO.embeddedApp.init().then(() => {
-                console.log("ZOHO SDK завантажено");
-                const recordId = "862445000000518273";
-                getDealData(recordId);
-            });
+            callback();
         } else {
-            console.error("ZOHO SDK не завантажено");
+            console.warn("ZOHO SDK ще не завантажено, повторна спроба через 100 мс...");
+            setTimeout(() => waitForZOHO(callback), 100);
         }
     }
 
-    window.addEventListener("load", run);
+    window.addEventListener("DOMContentLoaded", () => {
+        waitForZOHO(run);
+    });
 </script>
 </body>
 </html>
