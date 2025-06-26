@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: blue;
+            color: red;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -24,7 +24,7 @@
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
 
-    // Получаем курс НБУ
+    // Получаем курс НБУ один раз при загрузке
     fetch(NBU_API)
         .then(res => res.json())
         .then(data => {
@@ -36,20 +36,48 @@
             console.error("Помилка при отриманні курсу НБУ:", err);
         });
 
-    ZOHO.CRM.API.getRecord({
-        Entity: "Deals",
-        RecordID: "862445000000518273"
-    }).then(function(data){
-        console.log(data); // выведет объект записи сделки
-        if(data.data && data.data.length > 0){
-            const deal = data.data[0];
-            const currencyRate = deal.Currency_Rate;
-            console.log("Курс валюты из сделки:", currencyRate);
-            // тут можешь обновить элементы страницы, например:
-            document.getElementById("dealRate").textContent = currencyRate || '-';
-        }
-    });
+    // Ждём инициализации SDK и события PageLoad, чтобы получить текущий recordId из Zoho CRM
+    ZOHO.embeddedApp.init()
+        .then(() => {
+            // Подписываемся на событие загрузки страницы (текущей записи)
+            ZOHO.embeddedApp.on("PageLoad", function(data) {
+                console.log("PageLoad data:", data);
 
+                const recordId = data.EntityId;
+                if (!recordId) {
+                    console.warn("RecordId не передан в PageLoad");
+                    return;
+                }
+
+                // Получаем данные по записи Deals с полученным recordId
+                ZOHO.CRM.API.getRecord({
+                    Entity: "Deals",
+                    RecordID: recordId
+                }).then(response => {
+                    console.log("Данные сделки:", response);
+                    if (response.data && response.data.length > 0) {
+                        const deal = response.data[0];
+                        const dealRate = deal.Currency_Rate || 0;
+                        document.getElementById("dealRate").textContent = dealRate;
+
+                        if (nbuRate) {
+                            const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+                            document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+                        } else {
+                            document.getElementById("difference").textContent = "Курс НБУ не завантажено";
+                        }
+                    } else {
+                        document.getElementById("dealRate").textContent = "-";
+                        document.getElementById("difference").textContent = "-";
+                    }
+                }).catch(err => {
+                    console.error("Ошибка получения сделки:", err);
+                });
+            });
+        })
+        .catch(err => {
+            console.error("Ошибка инициализации ZOHO SDK:", err);
+        });
 </script>
 </body>
 </html>
