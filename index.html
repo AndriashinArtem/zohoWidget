@@ -2,17 +2,17 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
     <title>Widget</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-    </style>
 </head>
 <body>
-    <h1>Hello from Widget!</h1>
-    <script>
-        ZOHO.embeddedApp.init().then(() => {
-            console.log("Zoho init OK");
-        });
-    </script>
+    <p>Курс НБУ: <span id="nbuRate"></span></p>
+    <p>Курс в Угоді: <span id="dealRate"></span></p>
+    <p>Різниця у відсотках: <span id="difference"></span></p>
+    <button class="update-button">Записати<span id="updateButton"></span></button>
 </body>
 </html>
