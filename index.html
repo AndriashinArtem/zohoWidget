@@ -60,6 +60,7 @@
                         const deal = response.data[0];
                         const dealRate = deal.Currency_Rate || 0;
 
+                        console.log("Курс сделки (dealRate):", dealRate);
                         document.getElementById("dealRate").textContent = dealRate;
 
                         if (nbuRate) {
