@@ -12,7 +12,7 @@
             margin: 10px 0;
         }
         button {
-            background: white;
+            background: red;
             padding: 10px 20px;
             font-size: 16px;
         }
@@ -27,66 +27,68 @@
     <!-- Zoho SDK (CRM version) -->
     <script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
 
-    <script>
-        const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
-        let nbuRate = null;
+    <!-- Zoho SDK (CRM version) -->
+<script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
 
-        // Получаем курс НБУ
-        fetch(NBU_API)
-            .then(res => res.json())
-            .then(data => {
-                nbuRate = data[0].rate;
-                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-            })
-            .catch(err => {
-                document.getElementById("nbuRate").textContent = "Помилка";
-                console.error("Помилка при отриманні курсу НБУ:", err);
-            });
+<script>
+    const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
+    let nbuRate = null;
 
-        function initZoho() {
-            ZOHO.embeddedApp.init().then(() => {
-                ZOHO.embeddedApp.on("PageLoad", function(data) {
-                    console.log("PageLoad", data);
-                    const recordId = data?.EntityId;
-                    if (!recordId) {
-                        console.warn("Record ID не знайдено");
-                        return;
+    // Получаем курс НБУ
+    fetch(NBU_API)
+        .then(res => res.json())
+        .then(data => {
+            nbuRate = data[0].rate;
+            document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+        })
+        .catch(err => {
+            document.getElementById("nbuRate").textContent = "Помилка";
+            console.error("Помилка при отриманні курсу НБУ:", err);
+        });
+
+    function initZoho() {
+        ZOHO.embeddedApp.init().then(() => {
+            ZOHO.embeddedApp.on("PageLoad", function(data) {
+                console.log("PageLoad", data);
+                const recordId = data?.EntityId;
+                if (!recordId) {
+                    console.warn("Record ID не знайдено");
+                    return;
+                }
+
+                ZOHO.CRM.API.getRecord({
+                    Entity: "Deals",
+                    RecordID: recordId
+                }).then(response => {
+                    const deal = response.data[0];
+                    const dealRate = deal.Currency_Rate || 0;
+
+                    console.log("Курс сделки (dealRate):", dealRate);
+                    document.getElementById("dealRate").textContent = dealRate;
+
+                    if (nbuRate) {
+                        const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+                        document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+                    } else {
+                        document.getElementById("difference").textContent = "Курс НБУ не завантажено";
                     }
-
-                    ZOHO.CRM.API.getRecord({
-                        Entity: "Deals",
-                        RecordID: recordId
-                    }).then(response => {
-                        const deal = response.data[0];
-                        const dealRate = deal.Currency_Rate || 0;
-
-                        console.log("Курс сделки (dealRate):", dealRate);
-                        document.getElementById("dealRate").textContent = dealRate;
-
-                        if (nbuRate) {
-                            const diff = ((dealRate - nbuRate) / nbuRate) * 100;
-                            document.getElementById("difference").textContent = diff.toFixed(2) + " %";
-                        } else {
-                            document.getElementById("difference").textContent = "Курс НБУ не завантажено";
-                        }
-                    });
                 });
             });
-        }
-        initZoho();
-
-        // Гарантированно ждём загрузки страницы и SDK
-        window.addEventListener("DOMContentLoaded", () => {
-            const tryInit = () => {
-                if (typeof ZOHO !== "undefined") {
-                    initZoho();
-                } else {
-                    console.warn("ZOHO SDK ще не завантажено, повторна спроба...");
-                    setTimeout(tryInit, 500); // Пробуем ещё раз через 0.5с
-                }
-            };
-            tryInit();
         });
-    </script>
+    }
+
+    // ✅ Безопасная инициализация ZOHO после полной загрузки DOM
+    window.addEventListener("DOMContentLoaded", () => {
+        const tryInit = () => {
+            if (typeof ZOHO !== "undefined") {
+                initZoho();
+            } else {
+                console.warn("ZOHO SDK ще не завантажено, повторна спроба...");
+                setTimeout(tryInit, 500); // Retry
+            }
+        };
+        tryInit();
+    });
+</script>
 </body>
 </html>
