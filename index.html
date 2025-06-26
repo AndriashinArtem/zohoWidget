@@ -12,7 +12,7 @@
             margin: 10px 0;
         }
         button {
-            background: blue;
+            background: red;
             padding: 10px 20px;
             font-size: 16px;
         }
@@ -29,64 +29,70 @@
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
-    let nbuRate = null;
+let nbuRate = null;
 
-    // Получаем курс НБУ
-    fetch(NBU_API)
-        .then(res => res.json())
-        .then(data => {
-            nbuRate = data[0].rate;
-            document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-        })
-        .catch(err => {
-            document.getElementById("nbuRate").textContent = "Помилка";
-            console.error("Помилка при отриманні курсу НБУ:", err);
-        });
+// Получаем курс НБУ
+fetch(NBU_API)
+  .then(res => res.json())
+  .then(data => {
+    nbuRate = data[0].rate;
+    document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+  })
+  .catch(err => {
+    document.getElementById("nbuRate").textContent = "Помилка";
+    console.error("Помилка при отриманні курсу НБУ:", err);
+  });
 
-    function initZoho() {
-        ZOHO.embeddedApp.init().then(() => {
-            ZOHO.embeddedApp.on("PageLoad", function(data) {
-                console.log("PageLoad", data);
-                const recordId = data?.EntityId;
-                if (!recordId) {
-                    console.warn("Record ID не знайдено");
-                    return;
-                }
+// Получаем данные сделки (или лида) по ID
+function getDealData(recordId) {
+  ZOHO.CRM.API.getRecord({
+    Entity: "Deals",  // или "Leads", если нужна другая сущность
+    approved: "both",
+    RecordID: recordId
+  })
+  .then(function(response){
+    console.log("Данные записи:", response);
+    if (response.data && response.data.length > 0) {
+      const deal = response.data[0];
+      const dealRate = deal.Currency_Rate || 0;
+      document.getElementById("dealRate").textContent = dealRate;
 
-                ZOHO.CRM.API.getRecord({
-                    Entity: "Deals",
-                    RecordID: recordId
-                }).then(response => {
-                    const deal = response.data[0];
-                    const dealRate = deal.Currency_Rate || 0;
-
-                    console.log("Курс сделки (dealRate):", dealRate);
-                    document.getElementById("dealRate").textContent = dealRate;
-
-                    if (nbuRate) {
-                        const diff = ((dealRate - nbuRate) / nbuRate) * 100;
-                        document.getElementById("difference").textContent = diff.toFixed(2) + " %";
-                    } else {
-                        document.getElementById("difference").textContent = "Курс НБУ не завантажено";
-                    }
-                });
-            });
-        });
+      if (nbuRate) {
+        const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+        document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+      } else {
+        document.getElementById("difference").textContent = "Курс НБУ не завантажено";
+      }
+    } else {
+      document.getElementById("dealRate").textContent = "-";
+      document.getElementById("difference").textContent = "-";
     }
+  });
+}
 
-    // ✅ Безопасная инициализация ZOHO после полной загрузки DOM
-    window.addEventListener("DOMContentLoaded", () => {
-        const tryInit = () => {
-            if (typeof ZOHO !== "undefined") {
-                console.log("✅ ZOHO SDK завантажено"); // <-- вставь сюда
-                initZoho();
-            } else {
-                console.warn("⚠️ ZOHO SDK ще не завантажено, повторна спроба...");
-                setTimeout(tryInit, 500); // Retry
-            }
-        };
-        tryInit();
-    });
+// Инициализация Zoho SDK
+function initZoho() {
+  ZOHO.embeddedApp.init().then(() => {
+    console.log("ZOHO SDK завантажено");
+    // Здесь можно передать ID нужной записи
+    const recordId = "1000000030132";  // например, жестко прописанный ID
+    getDealData(recordId);
+  });
+}
+
+// Запуск после загрузки SDK и DOM
+window.addEventListener("DOMContentLoaded", () => {
+  const tryInit = () => {
+    if (typeof ZOHO !== "undefined") {
+      initZoho();
+    } else {
+      console.warn("ZOHO SDK ще не завантажено, повторна спроба...");
+      setTimeout(tryInit, 500);
+    }
+  };
+  tryInit();
+});
+
 
 </script>
 </body>
