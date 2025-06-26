@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: green;
+            color: blue;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -13,14 +13,12 @@
             margin: 10px 0;
         }
     </style>
+    <script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
 </head>
 <body>
 <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
 <p>Курс в Угоді: <span id="dealRate">-</span></p>
 <p>Різниця у відсотках: <span id="difference">-</span></p>
-
-<!-- Zoho SDK -->
-<script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
