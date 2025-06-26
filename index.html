@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: red;
+            color: blue;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -19,6 +19,7 @@
 <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
 <p>Курс в Угоді: <span id="dealRate">-</span></p>
 <p>Різниця у відсотках: <span id="difference">-</span></p>
+<button onclick="updateData()">Оновити<span id="updateButton"></span></button>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
