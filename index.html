@@ -2,48 +2,27 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8" />
-    <title>Курс валют - тест</title>
+    <title>Курс валют</title>
     <style>
         body {
+            color: red;
             font-family: sans-serif;
             padding: 20px;
         }
-        .step {
+        p {
             margin: 10px 0;
-            padding: 5px;
-            border-left: 3px solid #ccc;
-            padding-left: 10px;
         }
-        .success { border-color: green; color: green; }
-        .error { border-color: red; color: red; }
-        .loading { border-color: orange; color: orange; }
     </style>
     <script src="https://live.zwidgets.com/js-sdk/1.3/ZohoEmbededAppSDK.min.js"></script>
 </head>
 <body>
-    <h3>Тестування функціональності</h3>
-    
-    <div class="step loading" id="step1">1. Ініціалізація SDK...</div>
-    <div class="step" id="step2">2. Отримання курсу НБУ...</div>
-    <div class="step" id="step3">3. Перевірка доступу до API...</div>
-    <div class="step" id="step4">4. Отримання даних угоди...</div>
-    
-    <hr>
-    <div id="results" style="margin-top: 20px;">
-        <p>Курс НБУ: <span id="nbuRate">-</span></p>
-        <p>Курс в Угоді: <span id="dealRate">-</span></p>
-        <p>Різниця: <span id="difference">-</span></p>
-    </div>
+    <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
+    <p>Курс в Угоді: <span id="dealRate">-</span></p>
+    <p>Різниця у відсотках: <span id="difference">-</span></p>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
-    
-    function setStepStatus(stepId, status, message) {
-        const element = document.getElementById(stepId);
-        element.className = `step ${status}`;
-        element.textContent = message;
-    }
     
     function calculateDifference(dealRate, nbuRate) {
         if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
@@ -52,150 +31,52 @@
         }
     }
     
-    // Шаг 1: Инициализация SDK
+    // Инициализация
     ZOHO.embeddedApp.init().then(() => {
-        setStepStatus('step1', 'success', '1. SDK ініціалізовано успішно ✓');
         
-        // Шаг 2: Получение курса НБУ
-        setStepStatus('step2', 'loading', '2. Завантаження курсу НБУ...');
-        
+        // Получаем курс НБУ
         fetch(NBU_API)
             .then(res => res.json())
             .then(data => {
-                if (data && data.length > 0) {
-                    nbuRate = data[0].rate;
-                    document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-                    setStepStatus('step2', 'success', `2. Курс НБУ отримано: ${nbuRate.toFixed(4)} ✓`);
-                    
-                    // Шаг 3: Проверка доступа к API
-                    testAPIAccess();
-                } else {
-                    setStepStatus('step2', 'error', '2. Помилка: немає даних НБУ ✗');
-                }
+                nbuRate = data[0].rate;
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
             })
             .catch(err => {
-                setStepStatus('step2', 'error', '2. Помилка завантаження НБУ ✗');
-                console.error('NBU Error:', err);
+                document.getElementById("nbuRate").textContent = "Помилка";
             });
-            
-    }).catch(err => {
-        setStepStatus('step1', 'error', '1. Помилка ініціалізації SDK ✗');
-        console.error('SDK Error:', err);
-    });
-    
-    function testAPIAccess() {
-        setStepStatus('step3', 'loading', '3. Перевірка доступу до API...');
         
-        // Пробуем самый простой API вызов
-        ZOHO.CRM.API.getAllRecords({
-            Entity: "Deals",
-            page: 1,
-            per_page: 1
-        }).then(response => {
-            console.log('API Test Response:', response);
-            setStepStatus('step3', 'success', '3. Доступ до API підтверджено ✓');
-            
-            // Переходим к получению текущей записи
-            getCurrentRecord();
-            
-        }).catch(err => {
-            console.error('API Test Error:', err);
-            setStepStatus('step3', 'error', '3. Помилка доступу до API ✗');
-            
-            // Пробуем альтернативный метод
-            tryAlternativeMethod();
-        });
-    }
-    
-    function getCurrentRecord() {
-        setStepStatus('step4', 'loading', '4. Отримання поточної угоди...');
-        
-        // Метод 1: Через getRecord без ID (текущая запись)
+        // Получаем данные сделки
         ZOHO.CRM.API.getRecord({
             Entity: "Deals"
         }).then(response => {
-            console.log('Current Record:', response);
-            
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-                setStepStatus('step4', 'success', '4. Дані угоди отримано ✓');
                 
                 // Ищем поле с курсом
-                findCurrencyRate(deal);
-            } else {
-                setStepStatus('step4', 'error', '4. Немає даних угоди ✗');
-            }
-            
-        }).catch(err => {
-            console.error('GetRecord Error:', err);
-            setStepStatus('step4', 'error', '4. Помилка отримання угоди ✗');
-            
-            // Пробуем получить через UI
-            tryUIMethod();
-        });
-    }
-    
-    function findCurrencyRate(deal) {
-        console.log('Доступні поля угоди:', Object.keys(deal));
-        
-        // Возможные названия полей для курса валют
-        const possibleFields = [
-            'Currency_Rate', 'Exchange_Rate', 'Rate', 'Custom_Rate',
-            'currency_rate', 'exchange_rate', 'rate', 'custom_rate'
-        ];
-        
-        let foundRate = null;
-        let foundField = null;
-        
-        for (let field of possibleFields) {
-            if (deal[field] !== undefined && deal[field] !== null && deal[field] !== '') {
-                foundRate = parseFloat(deal[field]);
-                foundField = field;
-                if (!isNaN(foundRate)) {
-                    break;
+                const possibleFields = ['Currency_Rate', 'Exchange_Rate', 'Rate', 'Custom_Rate'];
+                let dealRate = null;
+                
+                for (let field of possibleFields) {
+                    if (deal[field] !== undefined && deal[field] !== null) {
+                        dealRate = parseFloat(deal[field]);
+                        if (!isNaN(dealRate)) break;
+                    }
                 }
-            }
-        }
-        
-        if (foundRate && !isNaN(foundRate)) {
-            document.getElementById("dealRate").textContent = foundRate.toFixed(4);
-            calculateDifference(foundRate, nbuRate);
-            console.log(`Знайдено курс в полі "${foundField}": ${foundRate}`);
-        } else {
-            document.getElementById("dealRate").textContent = "Поле не знайдено";
-            console.log('Доступні поля та їх значення:');
-            Object.keys(deal).forEach(key => {
-                console.log(`${key}: ${deal[key]}`);
-            });
-        }
-    }
-    
-    function tryUIMethod() {
-        console.log('Пробуємо UI метод...');
-        
-        ZOHO.CRM.UI.Record.getFieldValue({
-            Entity: "Deals",
-            Field: "Currency_Rate"
-        }).then(response => {
-            console.log('UI Method Response:', response);
-            
-            if (response && response.Currency_Rate !== undefined) {
-                const rate = parseFloat(response.Currency_Rate);
-                if (!isNaN(rate)) {
-                    document.getElementById("dealRate").textContent = rate.toFixed(4);
-                    calculateDifference(rate, nbuRate);
-                    setStepStatus('step4', 'success', '4. Дані отримано через UI ✓');
+                
+                if (dealRate && !isNaN(dealRate)) {
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(4);
+                    calculateDifference(dealRate, nbuRate);
+                } else {
+                    document.getElementById("dealRate").textContent = "Поле не знайдено";
                 }
             }
         }).catch(err => {
-            console.error('UI Method Error:', err);
+            document.getElementById("dealRate").textContent = "Помилка";
         });
-    }
-    
-    function tryAlternativeMethod() {
-        console.log('Пробуємо альтернативний метод...');
-        // Здесь можно добавить другие методы получения данных
-    }
+        
+    }).catch(err => {
+        document.getElementById("dealRate").textContent = "Помилка SDK";
+    });
 </script>
 </body>
 </html>
