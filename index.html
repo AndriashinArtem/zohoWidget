@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: blue;
+            color: red;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -24,7 +24,6 @@
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
-    updateData();
 
     function calculateDifference(dealRate, nbuRate) {
         if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
@@ -32,50 +31,49 @@
             document.getElementById("difference").textContent = diff.toFixed(2) + " %";
         }
     }
-
-    function updateData() {
-        ZOHO.embeddedApp.init().then(() => {
-
-            // Получаем курс НБУ
-            fetch(NBU_API)
-                .then(res => res.json())
-                .then(data => {
-                    nbuRate = data[0].rate;
-                    document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-                })
-                .catch(err => {
-                    document.getElementById("nbuRate").textContent = "Помилка";
-                });
-
-            // Получаем данные сделки
-            ZOHO.CRM.API.getRecord({
-                Entity: "Deals"
-            }).then(response => {
-                if (response && response.data && response.data.length > 0) {
-                    const deal = response.data[0];
-
-                    // Ищем поле с курсом
-                    let dealRate = null;
-
-                    if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                        dealRate = parseFloat(deal['Currency_Rate']);
-                    }
-
-                    if (dealRate && !isNaN(dealRate)) {
-                        document.getElementById("dealRate").textContent = dealRate.toFixed(4);
-                        calculateDifference(dealRate, nbuRate);
-                    } else {
-                        document.getElementById("dealRate").textContent = "Поле не знайдено";
-                    }
-                }
-            }).catch(err => {
-                document.getElementById("dealRate").textContent = "Помилка";
+    ZOHO.embeddedApp.init().then(() => {
+        fetch(NBU_API)
+            .then(res => res.json())
+            .then(data => {
+                nbuRate = data[0].rate;
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
+            })
+            .catch(err => {
+                document.getElementById("nbuRate").textContent = "Помилка";
             });
 
+        // Получаем данные сделки
+        ZOHO.CRM.API.getRecord({
+            Entity: "Deals"
+        }).then(response => {
+            if (response && response.data && response.data.length > 0) {
+                const deal = response.data[0];
+
+                // Ищем поле с курсом
+                let dealRate = null;
+
+                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                    dealRate = parseFloat(deal['Currency_Rate']);
+                }
+
+                if (dealRate && !isNaN(dealRate)) {
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                    calculateDifference(dealRate, nbuRate);
+                } else {
+                    document.getElementById("dealRate").textContent = "Поле не знайдено";
+                }
+            }
         }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка SDK";
+            document.getElementById("dealRate").textContent = "Помилка";
         });
-    }
+
+    }).catch(err => {
+        document.getElementById("dealRate").textContent = "Помилка SDK";
+
+        function updateData() {
+            
+        }
+    });
 </script>
 </body>
 </html>
