@@ -12,7 +12,7 @@
             margin: 10px 0;
         }
         button {
-            background: red;
+            background: blue;
             padding: 10px 20px;
             font-size: 16px;
         }
@@ -23,10 +23,7 @@
     <p>Курс в Угоді: <span id="dealRate">-</span></p>
     <p>Різниця у відсотках: <span id="difference">-</span></p>
     <button class="update-button">Оновити</button>
-
-    <!-- Zoho SDK (CRM version) -->
-    <script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
-
+    
     <!-- Zoho SDK (CRM version) -->
 <script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
 
@@ -81,14 +78,16 @@
     window.addEventListener("DOMContentLoaded", () => {
         const tryInit = () => {
             if (typeof ZOHO !== "undefined") {
+                console.log("✅ ZOHO SDK завантажено"); // <-- вставь сюда
                 initZoho();
             } else {
-                console.warn("ZOHO SDK ще не завантажено, повторна спроба...");
+                console.warn("⚠️ ZOHO SDK ще не завантажено, повторна спроба...");
                 setTimeout(tryInit, 500); // Retry
             }
         };
         tryInit();
     });
+
 </script>
 </body>
 </html>
