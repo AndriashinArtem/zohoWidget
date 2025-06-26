@@ -1,70 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Zoho Widget Example</title>
-  <!-- Подключаем SDK Zoho CRM для региона Европа -->
-  <script src="https://js.zoho.eu/crm/x/sdk.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 10px; }
-    p { margin: 5px 0; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Курс валют</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-  <p>Курс НБУ: <span id="nbuRate">завантаження...</span></p>
-  <p>Курс в Угоді: <span id="dealRate">-</span></p>
-  <p>Різниця у відсотках: <span id="difference">-</span></p>
+    <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
+    <p>Курс в Угоді: <span id="dealRate">-</span></p>
+    <p>Різниця у відсотках: <span id="difference">-</span></p>
+    <button class="update-button">Оновити</button>
 
-  <script>
-    const NBU_API_KEY = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
+    <!-- Zoho SDK -->
+    <script src="https://js.zohostatic.com/support/v2.0/sdk.js"></script>
 
-    let nbuRate = 0;
+    <script>
+        const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
 
-    // Функция инициализации Zoho и логика работы с CRM
-    function initZohoWidget() {
-      ZOHO.embeddedApp.init().then(() => {
-        ZOHO.embeddedApp.on("PageLoad", function(data) {
-          const recordId = data.EntityId;
+        let nbuRate = null;
 
-          ZOHO.CRM.API.getRecord({
-            Entity: "Deals",
-            RecordID: recordId
-          }).then(response => {
-            const dealData = response.data[0];
-            // Проверь имя поля Currency_Rate в твоём модуле и замени если нужно
-            const dealRate = dealData.Currency_Rate || 0;
+        // 1. Отримуємо курс НБУ
+        fetch(NBU_API)
+            .then(res => res.json())
+            .then(data => {
+                nbuRate = data[0].rate;
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+            })
+            .catch(err => {
+                document.getElementById("nbuRate").textContent = "Помилка";
+                console.error("Помилка при отриманні курсу НБУ:", err);
+            });
 
-            document.getElementById("dealRate").textContent = dealRate;
+        // 2. Чекаємо на Zoho
+        function initZoho() {
+            ZOHO.embeddedApp.init().then(() => {
+                ZOHO.embeddedApp.on("PageLoad", function(data) {
+                    const recordId = data.EntityId;
+                    ZOHO.CRM.API.getRecord({
+                        Entity: "Deals",
+                        RecordID: recordId
+                    }).then(response => {
+                        const deal = response.data[0];
+                        const dealRate = deal.Currency_Rate || 0;
 
-            if (nbuRate) {
-              const diff = ((dealRate - nbuRate) / nbuRate) * 100;
-              document.getElementById("difference").textContent = diff.toFixed(2) + " %";
-            } else {
-              document.getElementById("difference").textContent = "Курс НБУ не завантажений";
-            }
-          }).catch(err => {
-            console.error("Помилка отримання даних угоди:", err);
-            document.getElementById("dealRate").textContent = "Помилка";
-            document.getElementById("difference").textContent = "-";
-          });
-        });
-      });
-    }
+                        document.getElementById("dealRate").textContent = dealRate;
 
-    // Сначала получаем курс НБУ, потом инициализируем Zoho
-    fetch(NBU_API_KEY)
-      .then(res => res.json())
-      .then(data => {
-        nbuRate = data[0].rate;
-        document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-        initZohoWidget();
-      })
-      .catch(err => {
-        console.error("Помилка при отриманні курсу НБУ:", err);
-        document.getElementById("nbuRate").textContent = "Помилка";
-        initZohoWidget();
-      });
-  </script>
+                        if (nbuRate) {
+                            const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+                            document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+                        } else {
+                            document.getElementById("difference").textContent = "Курс НБУ не завантажено";
+                        }
+                    });
+                });
+            });
+        }
+
+        // 3. Перевіряємо, чи є Zoho
+        if (typeof ZOHO !== "undefined") {
+            initZoho();
+        } else {
+            console.error("ZOHO SDK не завантажено");
+        }
+    </script>
 </body>
 </html>
