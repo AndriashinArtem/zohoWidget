@@ -24,15 +24,14 @@
     <p>Різниця у відсотках: <span id="difference">-</span></p>
     <button class="update-button">Оновити</button>
 
-    <!-- Zoho SDK -->
+    <!-- Zoho SDK (CRM version) -->
     <script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
 
     <script>
         const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
-
         let nbuRate = null;
 
-        // 1. Отримуємо курс НБУ
+        // Получаем курс НБУ
         fetch(NBU_API)
             .then(res => res.json())
             .then(data => {
@@ -44,11 +43,16 @@
                 console.error("Помилка при отриманні курсу НБУ:", err);
             });
 
-        // 2. Чекаємо на Zoho
         function initZoho() {
             ZOHO.embeddedApp.init().then(() => {
                 ZOHO.embeddedApp.on("PageLoad", function(data) {
-                    const recordId = data.EntityId;
+                    console.log("PageLoad", data);
+                    const recordId = data?.EntityId;
+                    if (!recordId) {
+                        console.warn("Record ID не знайдено");
+                        return;
+                    }
+
                     ZOHO.CRM.API.getRecord({
                         Entity: "Deals",
                         RecordID: recordId
@@ -69,12 +73,18 @@
             });
         }
 
-        // 3. Перевіряємо, чи є Zoho
-        if (typeof ZOHO !== "undefined") {
-            initZoho();
-        } else {
-            console.error("ZOHO SDK не завантажено");
-        }
+        // Гарантированно ждём загрузки страницы и SDK
+        window.addEventListener("DOMContentLoaded", () => {
+            const tryInit = () => {
+                if (typeof ZOHO !== "undefined") {
+                    initZoho();
+                } else {
+                    console.warn("ZOHO SDK ще не завантажено, повторна спроба...");
+                    setTimeout(tryInit, 500); // Пробуем ещё раз через 0.5с
+                }
+            };
+            tryInit();
+        });
     </script>
 </body>
 </html>
