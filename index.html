@@ -56,7 +56,7 @@
                 let dealRate = null;
 
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal[field]);
+                    dealRate = parseFloat(deal['Currency_Rate']);
                     if (!isNaN(dealRate)) break;
                 }
 
