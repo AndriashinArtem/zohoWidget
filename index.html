@@ -24,6 +24,7 @@
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
+    updateData();
 
     function calculateDifference(dealRate, nbuRate) {
         if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
@@ -32,7 +33,7 @@
         }
     }
 
-    function updateData(nbuRate) {
+    function updateData() {
         ZOHO.embeddedApp.init().then(() => {
             fetch(NBU_API)
                 .then(res => res.json())
