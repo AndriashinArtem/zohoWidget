@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <title>Курс валют</title>
     <style>
         body {
-            color: red;
+            color: green;
             font-family: sans-serif;
             padding: 20px;
         }
+
         p {
             margin: 10px 0;
         }
@@ -31,28 +32,12 @@
         }
     }
 
-    // Инициализация
-    ZOHO.embeddedApp.init().then(() => {
-
-        // Получаем курс НБУ
-        fetch(NBU_API)
-            .then(res => res.json())
-            .then(data => {
-                nbuRate = data[0].rate;
-                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-            })
-            .catch(err => {
-                document.getElementById("nbuRate").textContent = "Помилка";
-            });
-
-        // Получаем данные сделки
+    function updateDealData(nbuRate) {
         ZOHO.CRM.API.getRecord({
             Entity: "Deals"
         }).then(response => {
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-
-                // Ищем поле с курсом
                 let dealRate = null;
 
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
@@ -60,7 +45,7 @@
                 }
 
                 if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(4);
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
                     calculateDifference(dealRate, nbuRate);
                 } else {
                     document.getElementById("dealRate").textContent = "Поле не знайдено";
@@ -69,7 +54,18 @@
         }).catch(err => {
             document.getElementById("dealRate").textContent = "Помилка";
         });
-
+    }
+    ZOHO.embeddedApp.init().then(() => {
+        fetch(NBU_API)
+            .then(res => res.json())
+            .then(data => {
+                nbuRate = data[0].rate;
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
+            })
+            .catch(err => {
+                document.getElementById("nbuRate").textContent = "Помилка";
+            });
+        updateDealData(nbuRate);
     }).catch(err => {
         document.getElementById("dealRate").textContent = "Помилка SDK";
     });
