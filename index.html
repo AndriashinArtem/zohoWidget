@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <title>Курс валют</title>
     <style>
         body {
-            color: red;
+            color: blue;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -19,19 +19,15 @@
 <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
 <p>Курс в Угоді: <span id="dealRate">-</span></p>
 <p>Різниця у відсотках: <span id="difference">-</span></p>
-<button onclick="updateData()">Оновити<span id="updateButton"></span></button>
+<button onclick="updateData()">Оновити</button>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
+    let currentRecordId = null; // Глобальная переменная
 
-    function calculateDifference(dealRate, nbuRate) {
-        if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
-            const diff = ((dealRate - nbuRate) / nbuRate) * 100;
-            document.getElementById("difference").textContent = diff.toFixed(2) + " %";
-        }
-    }
     ZOHO.embeddedApp.init().then(() => {
+        // Получаем курс НБУ
         fetch(NBU_API)
             .then(res => res.json())
             .then(data => {
@@ -42,38 +38,72 @@
                 document.getElementById("nbuRate").textContent = "Помилка";
             });
 
-        // Получаем данные сделки
-        ZOHO.CRM.API.getRecord({
-            Entity: "Deals"
-        }).then(response => {
-            if (response && response.data && response.data.length > 0) {
-                const deal = response.data[0];
+        // Получаем ID записи (только один раз!)
+        ZOHO.embeddedApp.on('PageLoad', function(data) {
+            currentRecordId = data.EntityId; // Сохраняем в глобальную переменную
+            console.log('ID текущей записи:', currentRecordId);
 
-                // Ищем поле с курсом
-                let dealRate = null;
+            if (currentRecordId) {
+                // Получаем данные сделки
+                ZOHO.CRM.API.getRecord({
+                    Entity: "Deals",
+                    RecordID: currentRecordId
+                }).then(response => {
+                    if (response && response.data && response.data.length > 0) {
+                        const deal = response.data[0];
+                        let dealRate = null;
 
-                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal['Currency_Rate']);
-                }
+                        if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                            dealRate = parseFloat(deal['Currency_Rate']);
+                        }
 
-                if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                    calculateDifference(dealRate, nbuRate);
-                } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
-                }
+                        if (dealRate && !isNaN(dealRate)) {
+                            document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                            calculateDifference(dealRate, nbuRate);
+                        } else {
+                            document.getElementById("dealRate").textContent = "Поле не знайдено";
+                        }
+                    }
+                }).catch(err => {
+                    document.getElementById("dealRate").textContent = "Помилка";
+                });
             }
-        }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
         });
 
     }).catch(err => {
         document.getElementById("dealRate").textContent = "Помилка SDK";
-
-        function updateData() {
-            
-        }
     });
+
+    // Функция обновления (вынесена наружу!)
+    function updateData() {
+        if (!currentRecordId || !nbuRate) {
+            alert('Не хватает данных для обновления');
+            return;
+        }
+
+        ZOHO.CRM.API.updateRecord({
+            Entity: 'Deals',
+            RecordID: currentRecordId,
+            APIData: {'Currency_Rate': nbuRate}
+        }).then(response => {
+            console.log('Курс обновлен:', response);
+            alert('Курс успешно обновлен!');
+
+            // Обновляем отображение
+            document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
+            calculateDifference(nbuRate, nbuRate);
+        }).catch(err => {
+            console.error('Ошибка обновления:', err);
+            alert('Ошибка при обновлении');
+        });
+    }
+
+    function calculateDifference(dealRate, nbuRate) {
+        if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
+            const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+            document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+        }
+    }
 </script>
 </body>
 </html>
