@@ -5,7 +5,7 @@
     <title>Курс валют</title>
     <style>
         body {
-            color: green;
+            color: red;
             font-family: sans-serif;
             padding: 20px;
         }
@@ -20,7 +20,7 @@
 <p>Різниця у відсотках: <span id="difference">-</span></p>
 
 <!-- Zoho SDK -->
-<script src="https://js.zohostatic.com/crm/CRMClient/javascript/sdk.js"></script>
+<script src="https://js.zohostatic.com/creator/widgets/js/sdk.js"></script>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
@@ -38,48 +38,20 @@
             console.error("Помилка при отриманні курсу НБУ:", err);
         });
 
-    // Основной код, когда SDK уже загружен
-    function main() {
-        const recordId = "862445000000518273";
-
-        ZOHO.CRM.API.getRecord({
-            Entity: "Deals",
-            approved: "both",
-            RecordID: recordId
-        }).then(response => {
-            console.log("Дані угоди:", response);
-            if (response.data && response.data.length > 0) {
-                const deal = response.data[0];
-                const dealRate = deal.Currency_Rate || 0;
-                document.getElementById("dealRate").textContent = dealRate;
-
-                if (nbuRate) {
-                    const diff = ((dealRate - nbuRate) / nbuRate) * 100;
-                    document.getElementById("difference").textContent = diff.toFixed(2) + " %";
-                } else {
-                    document.getElementById("difference").textContent = "Курс НБУ не завантажено";
-                }
-            } else {
-                document.getElementById("dealRate").textContent = "-";
-                document.getElementById("difference").textContent = "-";
-            }
-        });
-    }
-
-    // Ждём появления SDK и инициализируем приложение
-    function waitForZohoSDKAndRun() {
-        if (typeof ZOHO !== "undefined" && ZOHO?.embeddedApp) {
-            ZOHO.embeddedApp.init().then(() => {
-                console.log("✅ ZOHO SDK завантажено");
-                main();
-            });
-        } else {
-            console.log("⏳ Очікування ZOHO SDK...");
-            setTimeout(waitForZohoSDKAndRun, 300);
+    ZOHO.CRM.API.getRecord({
+        Entity: "Deals",
+        RecordID: "862445000000518273"
+    }).then(function(data){
+        console.log(data); // выведет объект записи сделки
+        if(data.data && data.data.length > 0){
+            const deal = data.data[0];
+            const currencyRate = deal.Currency_Rate;
+            console.log("Курс валюты из сделки:", currencyRate);
+            // тут можешь обновить элементы страницы, например:
+            document.getElementById("dealRate").textContent = currencyRate || '-';
         }
-    }
+    });
 
-    window.addEventListener("DOMContentLoaded", waitForZohoSDKAndRun);
 </script>
 </body>
 </html>
