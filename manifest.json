@@ -1,8 +1,7 @@
 {
-  "widgetName": TestWidget"",
-  "widgetVersion": "1.0",
-  "widgetType": "relatedlist",
+  "name": "MyHostedWidget",
+  "version": "1.0",
+  "url": "https://github.com/AndriashinArtem/zohoTest/index.html",
   "modules": ["Deals"],
-  "entryFile": "index.html",
-  "description": "Тестовий віджет"
+  "type": "widget"
 }
