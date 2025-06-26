@@ -12,6 +12,12 @@
         p {
             margin: 10px 0;
         }
+        .debug {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
     </style>
     <script src="https://live.zwidgets.com/js-sdk/1.3/ZohoEmbededAppSDK.min.js"></script>
 </head>
@@ -21,10 +27,30 @@
 <p>Різниця у відсотках: <span id="difference">-</span></p>
 <button onclick="updateData()">Оновити</button>
 
+<div class="debug">
+    <p>Отладка:</p>
+    <p>NBU Rate: <span id="debugNbu">-</span></p>
+    <p>Deal Rate: <span id="debugDeal">-</span></p>
+    <p>Record ID: <span id="debugId">-</span></p>
+</div>
+
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
     let nbuRate = null;
-    let currentRecordId = null; // Глобальная переменная
+    let dealRate = null;
+    let currentRecordId = null;
+
+    function updateDisplay() {
+        // Обновляем отладочную информацию
+        document.getElementById("debugNbu").textContent = nbuRate || "не загружен";
+        document.getElementById("debugDeal").textContent = dealRate || "не загружен";
+        document.getElementById("debugId").textContent = currentRecordId || "не получен";
+        
+        // Пересчитываем разницу если есть оба значения
+        if (nbuRate && dealRate) {
+            calculateDifference(dealRate, nbuRate);
+        }
+    }
 
     ZOHO.embeddedApp.init().then(() => {
         // Получаем курс НБУ
@@ -33,15 +59,19 @@
             .then(data => {
                 nbuRate = data[0].rate;
                 document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
+                console.log('NBU Rate загружен:', nbuRate);
+                updateDisplay();
             })
             .catch(err => {
+                console.error('Ошибка загрузки NBU:', err);
                 document.getElementById("nbuRate").textContent = "Помилка";
             });
 
-        // Получаем ID записи (только один раз!)
+        // Получаем ID записи
         ZOHO.embeddedApp.on('PageLoad', function(data) {
-            currentRecordId = data.EntityId; // Сохраняем в глобальную переменную
+            currentRecordId = data.EntityId;
             console.log('ID текущей записи:', currentRecordId);
+            updateDisplay();
 
             if (currentRecordId) {
                 // Получаем данные сделки
@@ -49,32 +79,43 @@
                     Entity: "Deals",
                     RecordID: currentRecordId
                 }).then(response => {
+                    console.log('Ответ API:', response);
+                    
                     if (response && response.data && response.data.length > 0) {
                         const deal = response.data[0];
-                        let dealRate = null;
+                        console.log('Данные сделки:', deal);
 
                         if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                             dealRate = parseFloat(deal['Currency_Rate']);
+                            console.log('Deal Rate найден:', dealRate);
                         }
-
+                        
                         if (dealRate && !isNaN(dealRate)) {
                             document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                            calculateDifference(dealRate, nbuRate);
+                            updateDisplay();
                         } else {
                             document.getElementById("dealRate").textContent = "Поле не знайдено";
+                            console.log('Поле Currency_Rate не найдено или пустое');
+                            
+                            // Показываем все доступные поля для отладки
+                            console.log('Доступные поля в сделке:', Object.keys(deal));
                         }
+                    } else {
+                        document.getElementById("dealRate").textContent = "Нет данных";
+                        console.log('Нет данных в ответе API');
                     }
                 }).catch(err => {
-                    document.getElementById("dealRate").textContent = "Помилка";
+                    console.error('Ошибка получения данных сделки:', err);
+                    document.getElementById("dealRate").textContent = "Помилка API";
                 });
             }
         });
 
     }).catch(err => {
+        console.error('Ошибка инициализации SDK:', err);
         document.getElementById("dealRate").textContent = "Помилка SDK";
     });
 
-    // Функция обновления (вынесена наружу!)
     function updateData() {
         if (!currentRecordId || !nbuRate) {
             alert('Не хватает данных для обновления');
@@ -88,20 +129,27 @@
         }).then(response => {
             console.log('Курс обновлен:', response);
             alert('Курс успешно обновлен!');
-
-            // Обновляем отображение
+            
+            // Обновляем локальные данные
+            dealRate = nbuRate;
             document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
-            calculateDifference(nbuRate, nbuRate);
+            updateDisplay();
         }).catch(err => {
             console.error('Ошибка обновления:', err);
-            alert('Ошибка при обновлении');
+            alert('Ошибка при обновлении: ' + err.message);
         });
     }
 
     function calculateDifference(dealRate, nbuRate) {
+        console.log('Calculating difference:', dealRate, nbuRate);
+        
         if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
             const diff = ((dealRate - nbuRate) / nbuRate) * 100;
             document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+            console.log('Разница рассчитана:', diff.toFixed(2) + '%');
+        } else {
+            document.getElementById("difference").textContent = "Не можливо розрахувати";
+            console.log('Не удалось рассчитать разницу, недостаточно данных');
         }
     }
 </script>
