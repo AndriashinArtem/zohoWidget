@@ -89,7 +89,7 @@
             Entity: "Deals",
             RecordID: currentRecordId,
             APIData: {
-                'Currency_Rate': nbuRate
+                Currency_Rate: nbuRate
             }
         }).then(response => {
             console.log("Успешно обновлено:", response);
@@ -105,9 +105,16 @@
             ZOHO.CRM.UI.Record.refresh();
 
         }).catch(err => {
-            console.error("Ошибка:", err);
+            console.error("Полная ошибка:", err);
+            console.error("err.data:", err.data);
+            
             if (err.data && err.data[0]) {
-                alert("Помилка: " + err.data[0].message);
+                console.error("Детали ошибки:", err.data[0]);
+                console.error("Код ошибки:", err.data[0].code);
+                console.error("Сообщение:", err.data[0].message);
+                console.error("Детали:", err.data[0].details);
+                
+                alert("Помилка: " + err.data[0].message + " (Код: " + err.data[0].code + ")");
             } else {
                 alert("Помилка оновлення курсу");
             }
