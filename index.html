@@ -50,12 +50,16 @@
 
     function initializeApp() {
         ZOHO.embeddedApp.init()
-            .then(response => {
+            .then(() => {
                 console.log("SDK инициализирован")
-
-                if (response && response.data && response.data.length > 0) {
-                    currentRecordId = response.data[0].id;
-                    console.log("ID СТРАНИЦЫ", currentRecordId)
+                return ZOHO.CRM.UI.Record.getCurrent();
+            })
+            .then(data => {
+                if (data && data.entityId) {
+                    currentRecordId = data.entityId;
+                    console.log("Текущий RecordID:", currentRecordId);
+                } else {
+                    console.log("RecordID не найден");
                 }
 
                 getNBURate();
