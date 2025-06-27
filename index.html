@@ -19,6 +19,7 @@
 <p>Курс НБУ: <span id="nbuRate">Завантаження...</span></p>
 <p>Курс в Угоді: <span id="dealRate">-</span></p>
 <p>Різниця у відсотках: <span id="difference">-</span></p>
+<button onClick="updateData()">Оновити</button>
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
@@ -31,6 +32,27 @@
         }
     }
 
+    function updateData(){
+        if (!nbuRate) {
+            alert("Курс НБУ ще не завантажено");
+            return;
+        }
+
+        ZOHO.CRM.API.updateRecord({
+            Entity: "Deals",
+            APIData: {
+                'Currency_Rate': nbuRate.toFixed(2)
+            }
+        }).then(response => {
+            console.log("Обновлено:", response);
+            // Обновляем интерфейс
+            document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
+            calculateDifference(nbuRate, nbuRate);
+        }).catch(err => {
+            console.error("Ошибка обновления:", err);
+        });
+    }
+
     // Инициализация
     ZOHO.embeddedApp.init().then(() => {
 
@@ -39,7 +61,7 @@
             .then(res => res.json())
             .then(data => {
                 nbuRate = data[0].rate;
-                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
             })
             .catch(err => {
                 document.getElementById("nbuRate").textContent = "Помилка";
