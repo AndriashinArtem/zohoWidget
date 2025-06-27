@@ -50,8 +50,14 @@
 
     function initializeApp() {
         ZOHO.embeddedApp.init()
-            .then(() => {
+            .then(response => {
                 console.log("SDK инициализирован")
+
+                if (response && response.data && response.data.length > 0) {
+                    currentRecordId = response.data[0].id;
+                    console.log("ID СТРАНИЦЫ", currentRecordId)
+                }
+
                 getNBURate();
                 getDealRate();
             })
@@ -85,7 +91,6 @@
         }).then(response => {
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-                currentRecordId = deal.id;
 
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                     dealRate = parseFloat(deal['Currency_Rate']);
