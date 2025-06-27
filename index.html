@@ -40,6 +40,7 @@
 
 <script>
     const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
+    let dealRate = null;
     let nbuRate = null;
     let currentRecordId = null;
 
@@ -55,14 +56,14 @@
             alert("Курс НБУ ще не завантажено");
             return;
         }
-        
+
         if (!currentRecordId) {
             alert("ID записи не визначено");
             return;
         }
-        
+
         console.log("Обновляем запись ID:", currentRecordId, "Курс:", nbuRate);
-        
+
         ZOHO.CRM.API.updateRecord({
             Entity: "Deals",
             RecordID: currentRecordId,
@@ -73,18 +74,21 @@
         }).then(response => {
             console.log("Успешно обновлено:", response);
             document.getElementById("dealRate").textContent = nbuRate.toFixed(4);
-            calculateDifference(nbuRate, nbuRate);
+            calculateDifference(dealRate, nbuRate);
+            ZOHO.CRM.UI.Record.refresh();
             alert("Курс успішно оновлено!");
+
+
         }).catch(err => {
             console.error("Полная ошибка:", err);
             console.error("err.data:", err.data);
-            
+
             if (err.data && err.data[0]) {
                 console.error("Детали первой ошибки:", err.data[0]);
                 console.error("Код ошибки:", err.data[0].code);
                 console.error("Сообщение ошибки:", err.data[0].message);
                 console.error("Детали:", err.data[0].details);
-                
+
                 alert("Помилка: " + err.data[0].message + " (Код: " + err.data[0].code + ")");
             } else {
                 alert("Помилка оновлення курсу");
@@ -101,7 +105,7 @@
             .then(res => res.json())
             .then(data => {
                 nbuRate = data[0].rate;
-                document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+                document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
                 console.log("Курс НБУ загружен:", nbuRate);
             })
             .catch(err => {
@@ -114,32 +118,21 @@
             Entity: "Deals"
         }).then(response => {
             console.log("Ответ getRecord:", response);
-            
+
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-                
-                // Сохраняем ID записи
+
                 currentRecordId = deal.id;
                 document.getElementById("recordId").textContent = currentRecordId;
                 console.log("ID записи:", currentRecordId);
-                
-                // Выводим все поля для отладки
-                console.log("Все поля записи:", Object.keys(deal));
-                console.log("Поля содержащие 'rate' или 'Rate':", 
-                    Object.keys(deal).filter(key => 
-                        key.toLowerCase().includes('rate') || 
-                        key.toLowerCase().includes('currency')
-                    )
-                );
 
                 // Ищем поле с курсом
-                let dealRate = null;
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                     dealRate = parseFloat(deal['Currency_Rate']);
                 }
 
                 if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(4);
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
                     calculateDifference(dealRate, nbuRate);
                 } else {
                     document.getElementById("dealRate").textContent = "Поле не знайдено";
