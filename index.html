@@ -103,7 +103,7 @@
             alert("Курс успішно оновлено!");
 
             // Обновляем страницу CRM
-            ZOHO.CRM.UI.Record.refresh();
+            //ZOHO.CRM.UI.Record.refresh();
 
         }).catch(err => {
             console.error("Ошибка:", err);
@@ -130,7 +130,6 @@
                 document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
                 console.log("Курс НБУ загружен:", nbuRate);
 
-                // Если данные сделки уже загружены, пересчитываем разницу
                 if (dealRate) {
                     calculateDifference(dealRate, nbuRate);
                 }
