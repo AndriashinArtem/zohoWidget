@@ -171,30 +171,47 @@
         console.log("SDK инициализирован");
 
         // Получаем ID текущей записи
-        ZOHO.CRM.UI.Record.getFieldValue({
-            fieldAPIName: "id"
-        }).then(response => {
-            currentRecordId = response.Success.fieldValue;
-            console.log("Получен ID записи:", currentRecordId);
+        ZOHO.CRM.UI.Record.get().then(recordData => {
+            console.log("Полный ответ Record.get():", recordData);
             
-            // Загружаем данные текущей записи
-            loadDealData(currentRecordId);
-            
+            if (recordData && recordData.Success && recordData.Success.data) {
+                currentRecordId = recordData.Success.data.id;
+                console.log("Получен ID записи:", currentRecordId);
+                loadDealData(currentRecordId);
+            } else {
+                console.error("Неожиданная структура ответа:", recordData);
+                // Пробуем альтернативные способы получения ID
+                tryAlternativeIdMethods();
+            }
         }).catch(err => {
-            console.error("Ошибка получения ID записи:", err);
-            
-            // Альтернативный способ получения ID
-            ZOHO.CRM.UI.Record.get().then(recordData => {
-                if (recordData && recordData.Success && recordData.Success.data) {
-                    currentRecordId = recordData.Success.data.id;
-                    console.log("Получен ID записи (альтернативный способ):", currentRecordId);
-                    loadDealData(currentRecordId);
-                }
-            }).catch(altErr => {
-                console.error("Альтернативный способ тоже не сработал:", altErr);
-                document.getElementById("dealRate").textContent = "Не вдалось отримати ID запису";
-            });
+            console.error("Ошибка получения данных записи:", err);
+            tryAlternativeIdMethods();
         });
+
+    function tryAlternativeIdMethods() {
+        // Попробуем получить ID из URL или других источников
+        ZOHO.embeddedApp.on("PageLoad", function(data) {
+            console.log("PageLoad data:", data);
+            if (data && data.EntityId) {
+                currentRecordId = data.EntityId;
+                console.log("ID получен из PageLoad:", currentRecordId);
+                loadDealData(currentRecordId);
+            }
+        });
+        
+        // Еще один способ - через getPageInfo
+        ZOHO.CRM.UI.getPageInfo().then(pageInfo => {
+            console.log("Page info:", pageInfo);
+            if (pageInfo && pageInfo.EntityId) {
+                currentRecordId = pageInfo.EntityId;
+                console.log("ID получен из PageInfo:", currentRecordId);
+                loadDealData(currentRecordId);
+            }
+        }).catch(err => {
+            console.error("Ошибка getPageInfo:", err);
+            document.getElementById("dealRate").textContent = "Не вдалось отримати ID запису";
+        });
+    }
 
         // Получаем курс НБУ
         fetch(NBU_API)
