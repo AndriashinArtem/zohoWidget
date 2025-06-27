@@ -150,7 +150,8 @@
 
         // Получаем данные сделки
         ZOHO.CRM.API.getRecord({
-            Entity: "Deals"
+            Entity: "Deals",
+            RecordID: currentRecordId
         }).then(response => {
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
