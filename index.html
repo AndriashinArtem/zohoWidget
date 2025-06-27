@@ -126,9 +126,75 @@
         });
     }
 
+    function loadDealData(recordId) {
+        console.log("Загрузка данных для записи:", recordId);
+        
+        ZOHO.CRM.API.getRecord({
+            Entity: "Deals",
+            RecordID: recordId
+        }).then(response => {
+            console.log("Ответ API:", response);
+            
+            if (response && response.data && response.data.length > 0) {
+                const deal = response.data[0];
+                currentDealData = deal; // Сохраняем все данные сделки
+
+                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                    dealRate = parseFloat(deal['Currency_Rate']);
+                } else {
+                    dealRate = null;
+                }
+
+                if (dealRate && !isNaN(dealRate)) {
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                    
+                    // Если курс НБУ уже загружен, пересчитываем разницу
+                    if (nbuRate) {
+                        calculateDifference(dealRate, nbuRate);
+                    }
+                } else {
+                    document.getElementById("dealRate").textContent = "Поле не знайдено";
+                    document.getElementById("difference").textContent = "-";
+                    document.getElementById("updateButton").style.display = "none";
+                }
+            }
+        }).catch(err => {
+            document.getElementById("dealRate").textContent = "Помилка";
+            document.getElementById("difference").textContent = "-";
+            document.getElementById("updateButton").style.display = "none";
+            console.error("Ошибка загрузки данных сделки:", err);
+        });
+    }
+
     // Инициализация
     ZOHO.embeddedApp.init().then(() => {
         console.log("SDK инициализирован");
+
+        // Получаем ID текущей записи
+        ZOHO.CRM.UI.Record.getFieldValue({
+            fieldAPIName: "id"
+        }).then(response => {
+            currentRecordId = response.Success.fieldValue;
+            console.log("Получен ID записи:", currentRecordId);
+            
+            // Загружаем данные текущей записи
+            loadDealData(currentRecordId);
+            
+        }).catch(err => {
+            console.error("Ошибка получения ID записи:", err);
+            
+            // Альтернативный способ получения ID
+            ZOHO.CRM.UI.Record.get().then(recordData => {
+                if (recordData && recordData.Success && recordData.Success.data) {
+                    currentRecordId = recordData.Success.data.id;
+                    console.log("Получен ID записи (альтернативный способ):", currentRecordId);
+                    loadDealData(currentRecordId);
+                }
+            }).catch(altErr => {
+                console.error("Альтернативный способ тоже не сработал:", altErr);
+                document.getElementById("dealRate").textContent = "Не вдалось отримати ID запису";
+            });
+        });
 
         // Получаем курс НБУ
         fetch(NBU_API)
@@ -147,36 +213,6 @@
                 document.getElementById("nbuRate").textContent = "Помилка";
                 console.error("Ошибка загрузки курса НБУ:", err);
             });
-
-        // Получаем данные сделки
-        ZOHO.CRM.API.getRecord({
-            Entity: "Deals",
-            RecordID: currentRecordId
-        }).then(response => {
-            if (response && response.data && response.data.length > 0) {
-                const deal = response.data[0];
-                currentRecordId = deal.id;
-                currentDealData = deal; // Сохраняем все данные сделки
-
-                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal['Currency_Rate']);
-                }
-
-                if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                    
-                    // Если курс НБУ уже загружен, пересчитываем разницу
-                    if (nbuRate) {
-                        calculateDifference(dealRate, nbuRate);
-                    }
-                } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
-                }
-            }
-        }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
-            console.error("Ошибка загрузки данных сделки:", err);
-        });
 
     }).catch(err => {
         document.getElementById("dealRate").textContent = "Помилка SDK";
