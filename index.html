@@ -62,8 +62,6 @@
             return;
         }
 
-        console.log("Обновляем запись ID:", currentRecordId, "Курс:", nbuRate);
-
         ZOHO.CRM.API.updateRecord({
             Entity: "Deals",
             RecordID: currentRecordId,
@@ -73,26 +71,14 @@
             }
         }).then(response => {
             console.log("Успешно обновлено:", response);
-            document.getElementById("dealRate").textContent = nbuRate.toFixed(4);
+            document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
             calculateDifference(dealRate, nbuRate);
-            ZOHO.CRM.UI.Record.refresh();
+            //ZOHO.CRM.UI.Record.refresh();
             alert("Курс успішно оновлено!");
 
 
         }).catch(err => {
-            console.error("Полная ошибка:", err);
-            console.error("err.data:", err.data);
-
-            if (err.data && err.data[0]) {
-                console.error("Детали первой ошибки:", err.data[0]);
-                console.error("Код ошибки:", err.data[0].code);
-                console.error("Сообщение ошибки:", err.data[0].message);
-                console.error("Детали:", err.data[0].details);
-
-                alert("Помилка: " + err.data[0].message + " (Код: " + err.data[0].code + ")");
-            } else {
-                alert("Помилка оновлення курсу");
-            }
+            console.error("Ошибка:", err);
         });
     }
 
@@ -117,16 +103,15 @@
         ZOHO.CRM.API.getRecord({
             Entity: "Deals"
         }).then(response => {
-            console.log("Ответ getRecord:", response);
+            //console.log("Ответ getRecord:", response);
 
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-
                 currentRecordId = deal.id;
-                document.getElementById("recordId").textContent = currentRecordId;
-                console.log("ID записи:", currentRecordId);
 
-                // Ищем поле с курсом
+                /*document.getElementById("recordId").textContent = currentRecordId;
+                console.log("ID записи:", currentRecordId);*/
+
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                     dealRate = parseFloat(deal['Currency_Rate']);
                 }
