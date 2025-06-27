@@ -67,6 +67,7 @@
             Entity: "Deals",
             RecordID: currentRecordId,
             APIData: {
+                'id': currentRecordId,  // Добавляем ID в данные!
                 'Currency_Rate': nbuRate.toString()
             }
         }).then(response => {
