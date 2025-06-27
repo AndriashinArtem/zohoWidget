@@ -129,15 +129,25 @@
     function loadDealData(recordId) {
         console.log("Загрузка данных для записи:", recordId);
         
+        if (!recordId) {
+            console.log("ID записи не определен, пробуем без него");
+            document.getElementById("dealRate").textContent = "ID запису не визначено";
+            return;
+        }
+        
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
             RecordID: recordId
         }).then(response => {
-            console.log("Ответ API:", response);
+            console.log("Ответ API getRecord:", response);
             
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
                 currentDealData = deal; // Сохраняем все данные сделки
+                currentRecordId = recordId; // Убеждаемся что ID сохранен
+
+                console.log("Данные сделки:", deal);
+                console.log("Currency_Rate из сделки:", deal['Currency_Rate']);
 
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                     dealRate = parseFloat(deal['Currency_Rate']);
@@ -153,13 +163,16 @@
                         calculateDifference(dealRate, nbuRate);
                     }
                 } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
+                    document.getElementById("dealRate").textContent = "Поле не знайдено або порожнє";
                     document.getElementById("difference").textContent = "-";
                     document.getElementById("updateButton").style.display = "none";
                 }
+            } else {
+                console.error("Нет данных в ответе:", response);
+                document.getElementById("dealRate").textContent = "Немає даних";
             }
         }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
+            document.getElementById("dealRate").textContent = "Помилка завантаження";
             document.getElementById("difference").textContent = "-";
             document.getElementById("updateButton").style.display = "none";
             console.error("Ошибка загрузки данных сделки:", err);
@@ -169,49 +182,65 @@
     // Инициализация
     ZOHO.embeddedApp.init().then(() => {
         console.log("SDK инициализирован");
+        
+        // Проверяем доступные методы в SDK
+        console.log("Доступные методы ZOHO.CRM:", Object.keys(ZOHO.CRM));
+        if (ZOHO.CRM.UI) {
+            console.log("Доступные методы ZOHO.CRM.UI:", Object.keys(ZOHO.CRM.UI));
+        }
 
-        // Получаем ID текущей записи
-        ZOHO.CRM.UI.Record.get().then(recordData => {
-            console.log("Полный ответ Record.get():", recordData);
-            
-            if (recordData && recordData.Success && recordData.Success.data) {
-                currentRecordId = recordData.Success.data.id;
-                console.log("Получен ID записи:", currentRecordId);
-                loadDealData(currentRecordId);
-            } else {
-                console.error("Неожиданная структура ответа:", recordData);
-                // Пробуем альтернативные способы получения ID
-                tryAlternativeIdMethods();
-            }
-        }).catch(err => {
-            console.error("Ошибка получения данных записи:", err);
-            tryAlternativeIdMethods();
-        });
-
-    function tryAlternativeIdMethods() {
-        // Попробуем получить ID из URL или других источников
+        // Пробуем получить ID текущей записи через событие
         ZOHO.embeddedApp.on("PageLoad", function(data) {
-            console.log("PageLoad data:", data);
+            console.log("PageLoad event data:", data);
             if (data && data.EntityId) {
                 currentRecordId = data.EntityId;
                 console.log("ID получен из PageLoad:", currentRecordId);
                 loadDealData(currentRecordId);
             }
         });
-        
-        // Еще один способ - через getPageInfo
-        ZOHO.CRM.UI.getPageInfo().then(pageInfo => {
-            console.log("Page info:", pageInfo);
-            if (pageInfo && pageInfo.EntityId) {
-                currentRecordId = pageInfo.EntityId;
-                console.log("ID получен из PageInfo:", currentRecordId);
-                loadDealData(currentRecordId);
+
+        // Альтернативный способ - через API без указания конкретного ID
+        // Получаем данные текущей записи напрямую
+        setTimeout(() => {
+            if (!currentRecordId) {
+                console.log("Пробуем получить данные текущей записи без ID...");
+                tryGetCurrentRecord();
             }
-        }).catch(err => {
-            console.error("Ошибка getPageInfo:", err);
-            document.getElementById("dealRate").textContent = "Не вдалось отримати ID запису";
-        });
-    }
+        }, 1000);
+
+        function tryGetCurrentRecord() {
+            // Пробуем получить информацию о текущей странице
+            try {
+                ZOHO.CRM.API.getAllRecords({
+                    Entity: "Deals",
+                    per_page: 1
+                }).then(response => {
+                    console.log("Ответ getAllRecords:", response);
+                    // Это не то что нам нужно, но поможет понять структуру
+                }).catch(err => {
+                    console.log("getAllRecords failed:", err);
+                });
+            } catch (e) {
+                console.log("getAllRecords method not available:", e);
+            }
+
+            // Пробуем другие способы
+            if (typeof ZOHO.CRM.CONFIG !== 'undefined') {
+                ZOHO.CRM.CONFIG.getCurrentUser().then(user => {
+                    console.log("Current user:", user);
+                }).catch(err => {
+                    console.log("getCurrentUser failed:", err);
+                });
+            }
+            
+            // Если ничего не работает, показываем ошибку
+            setTimeout(() => {
+                if (!currentRecordId) {
+                    document.getElementById("dealRate").textContent = "Не вдалось отримати ID запису";
+                    console.error("Не удалось получить ID текущей записи");
+                }
+            }, 2000);
+        }
 
         // Получаем курс НБУ
         fetch(NBU_API)
