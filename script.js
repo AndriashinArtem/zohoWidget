@@ -45,13 +45,28 @@ ZOHO.embeddedApp.init()
             Entity: "Deals",
             RecordID: "862445000000512257"
         }).then(response => {
-            if (response && response.data && response.data.length > 0) {
+            const deal = response.data[0];
+            //recordId = response.data[0].id;
+            console.log("RECORDS ID:")
+            console.log("Record ID - ", response.data[0].id);
+
+            let dealRate = null;
+
+            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                dealRate = parseFloat(deal['Currency_Rate']);
+            }
+
+            if (dealRate && !isNaN(dealRate)) {
+                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                calculateDifference(dealRate, nbuRate);
+            } else {
+                document.getElementById("dealRate").textContent = "Поле не знайдено";
+            }
+            /*if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
                 //recordId = response.data[0].id;
                 console.log("RECORDS ID:")
                 console.log("Record ID - ", response.data[0].id);
-                console.log("Record ID - ", response.data[1].id);
-                console.log("Record ID - ", response.data[2].id);
                 // Ищем поле с курсом
                 let dealRate = null;
 
@@ -65,7 +80,7 @@ ZOHO.embeddedApp.init()
                 } else {
                     document.getElementById("dealRate").textContent = "Поле не знайдено";
                 }
-            }
+            }*/
         }).catch(err => {
             document.getElementById("dealRate").textContent = "Помилка";
         });
