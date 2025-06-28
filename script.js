@@ -23,11 +23,11 @@ function getNBU() {
         });
 }
 
-ZOHO.embeddedApp.on("PageLoad", function(data) {
-    recordId = data.EntityId;
-
     ZOHO.embeddedApp.init()
         .then(() => {
+            ZOHO.embeddedApp.on("PageLoad", function(data) {
+                recordId = data.EntityId;
+
             console.log("✅ SDK инициализирован успешно");
             console.log("📌 Record ID:", recordId);
 
