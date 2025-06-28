@@ -25,9 +25,10 @@ function getNBU() {
 }
 
 ZOHO.embeddedApp.on("PageLoad", function (data) {
-    recordId = data.EntityId[0];
+    recordId = data.EntityId;
     console.log("Record ID:", recordId);
     entityName = data.Entity;
+    console.log("Record ID:", entityName);
 
     ZOHO.CRM.API.getRecord({
         Entity: "Deals",
