@@ -23,38 +23,36 @@ function getNBU() {
         });
 }
 
-    ZOHO.embeddedApp.init()
-        .then(() => {
-            ZOHO.embeddedApp.on("PageLoad", function(data) {
-                recordId = data.EntityId;
+ZOHO.embeddedApp.init().then(() => {
+    console.log("✅ SDK инициализирован успешно");
 
-            console.log("✅ SDK инициализирован успешно");
-            console.log("📌 Record ID:", recordId);
-
-            ZOHO.CRM.API.getRecord({
-                Entity: "Deals",
-                RecordID: recordId
-            }).then(response => {
-                if (response && response.data[0]) {
-                    const deal = response.data[0];
-                    let dealRate = null;
-
-                    if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                        dealRate = parseFloat(deal['Currency_Rate']);
-                    }
-
-                    if (dealRate && !isNaN(dealRate)) {
-                        document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                        calculateDifference(dealRate, nbuRate);
-                    } else {
-                        document.getElementById("dealRate").textContent = "Поле не знайдено";
-                    }
-                }
-            }).catch(err => {
-                document.getElementById("dealRate").textContent = "Помилка";
-            });
-
-        }).catch(err => {
-        document.getElementById("dealRate").textContent = "Помилка SDK";
+    ZOHO.embeddedApp.on("PageLoad", function(data) {
+        recordId = data.EntityId;
+        console.log("📌 Record ID:", recordId);
     });
+
+    ZOHO.CRM.API.getRecord({
+        Entity: "Deals",
+        RecordID: recordId
+    }).then(response => {
+        if (response && response.data[0]) {
+            const deal = response.data[0];
+            let dealRate = null;
+
+            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                dealRate = parseFloat(deal['Currency_Rate']);
+            }
+
+            if (dealRate && !isNaN(dealRate)) {
+                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                calculateDifference(dealRate, nbuRate);
+            } else {
+                document.getElementById("dealRate").textContent = "Поле не знайдено";
+            }
+        }
+    }).catch(err => {
+        document.getElementById("dealRate").textContent = "Помилка";
+    });
+}).catch(err => {
+    document.getElementById("dealRate").textContent = "Помилка SDK";
 });
