@@ -43,26 +43,9 @@ ZOHO.embeddedApp.init()
 
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
-            RecordID: "862445000000512257"
+            RecordID: "862445000000518273"
         }).then(response => {
-            const deal = response.data[0];
-            //recordId = response.data[0].id;
-            console.log("RECORDS ID:")
-            console.log("Record ID - ", response.data[0].id);
-
-            let dealRate = null;
-
-            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                dealRate = parseFloat(deal['Currency_Rate']);
-            }
-
-            if (dealRate && !isNaN(dealRate)) {
-                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                calculateDifference(dealRate, nbuRate);
-            } else {
-                document.getElementById("dealRate").textContent = "Поле не знайдено";
-            }
-            /*if (response && response.data && response.data.length > 0) {
+            if (response && response.data[0] && response.data[0].length > 0) {
                 const deal = response.data[0];
                 //recordId = response.data[0].id;
                 console.log("RECORDS ID:")
@@ -80,7 +63,7 @@ ZOHO.embeddedApp.init()
                 } else {
                     document.getElementById("dealRate").textContent = "Поле не знайдено";
                 }
-            }*/
+            }
         }).catch(err => {
             document.getElementById("dealRate").textContent = "Помилка";
         });
