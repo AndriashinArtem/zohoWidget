@@ -1,5 +1,6 @@
 const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
 let nbuRate = null;
+let dealRate = null;
 let recordId = null;
 let entityName = null;
 
@@ -31,6 +32,13 @@ function updateNbuRate() {
         APIData: {
             Currency_Rate: nbuRate
         }
+    }).then(response => {
+        console.log("Успешно обновлено:", response);
+
+        dealRate = nbuRate;
+        document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
+        calculateDifference(nbuRate, dealRate);
+        //ZOHO.CRM.UI.Record.refresh();
     });
 }
 
@@ -45,7 +53,6 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     }).then(response => {
         if (response && response.data[0]) {
             const deal = response.data[0];
-            let dealRate = null;
 
             if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
                 dealRate = parseFloat(deal['Currency_Rate']);
