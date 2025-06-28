@@ -38,8 +38,8 @@ function updateDealRate() {
 
     ZOHO.CRM.API.updateRecord({
         Entity: entityName,
-        RecordID: recordId,
         APIData: {
+            id: recordId,
             Currency_Rate: nbuRate
         }
     }).then(response => {
