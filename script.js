@@ -27,7 +27,7 @@ ZOHO.embeddedApp.init().then(() => {
 
     ZOHO.CRM.API.getRecord({
         Entity: "Deals",
-        RecordID: recordId
+
     }).then(response => {
         if (response && response.data && response.data.length > 0) {
             const deal = response.data[0];
