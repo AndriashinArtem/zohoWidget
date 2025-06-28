@@ -14,7 +14,7 @@ function getNBU(){
         .then(res => res.json())
         .then(data => {
             nbuRate = data[0].rate;
-            document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+            document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
         })
         .catch(err => {
             document.getElementById("nbuRate").textContent = "Помилка";
@@ -23,18 +23,11 @@ function getNBU(){
 // Инициализация
 ZOHO.embeddedApp.init().then(() => {
 
-    // Получаем курс НБУ
-    /*fetch(NBU_API)
-        .then(res => res.json())
-        .then(data => {
-            nbuRate = data[0].rate;
-            document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
-        })
-        .catch(err => {
-            document.getElementById("nbuRate").textContent = "Помилка";
-        });
-*/
-    getNBU();
+    ZOHO.embeddedApp.on("PageLoad", function(data) {
+        const recordId = data.EntityId;
+        console.log("ID записи:", recordId);
+        document.getElementById("recordId").textContent = recordId;
+    });
 
     // Получаем данные сделки
     ZOHO.CRM.API.getRecord({
@@ -51,7 +44,7 @@ ZOHO.embeddedApp.init().then(() => {
             }
 
             if (dealRate && !isNaN(dealRate)) {
-                document.getElementById("dealRate").textContent = dealRate.toFixed(4);
+                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
                 calculateDifference(dealRate, nbuRate);
             } else {
                 document.getElementById("dealRate").textContent = "Поле не знайдено";
@@ -64,3 +57,5 @@ ZOHO.embeddedApp.init().then(() => {
 }).catch(err => {
     document.getElementById("dealRate").textContent = "Помилка SDK";
 });
+
+getNBU();
