@@ -1,6 +1,6 @@
 const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
 let nbuRate = null;
-let recordId = null
+let recordId = null;
 
 getNBU();
 
@@ -23,19 +23,17 @@ function getNBU() {
         });
 }
 
-ZOHO.embeddedApp.init()
-    .then(() => {
-        console.log("✅ SDK инициализирован успешно");
+ZOHO.embeddedApp.on("PageLoad", function(data) {
+    recordId = data.EntityId;
 
-        ZOHO.embeddedApp.on('PageLoad', function(data){
-            console.log("Page Loaded...")
-            console.log(data);
-            console.log("Entity Name is :::::");
-            console.log(data.Entity);
+    ZOHO.embeddedApp.init()
+        .then(() => {
+            console.log("✅ SDK инициализирован успешно");
+            console.log("📌 Record ID:", recordId);
 
             ZOHO.CRM.API.getRecord({
                 Entity: "Deals",
-                RecordID: data.RecordID
+                RecordID: recordId
             }).then(response => {
                 if (response && response.data[0]) {
                     const deal = response.data[0];
@@ -55,8 +53,8 @@ ZOHO.embeddedApp.init()
             }).catch(err => {
                 document.getElementById("dealRate").textContent = "Помилка";
             });
-        });
 
-    }).catch(err => {
-    document.getElementById("dealRate").textContent = "Помилка SDK";
+        }).catch(err => {
+        document.getElementById("dealRate").textContent = "Помилка SDK";
+    });
 });
