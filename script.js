@@ -43,11 +43,13 @@ ZOHO.embeddedApp.init()
 
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
+            RecordID: "862445000000512257"
         }).then(response => {
             if (response && response.data && response.data.length > 0) {
-                const deal = response.data[0];
+                const deal = response.data;
                 //recordId = response.data[0].id;
                 console.log("RECORDS ID:")
+                console.log("Record ID - ", response.data.id);
                 console.log("Record ID - ", response.data[0].id);
                 console.log("Record ID - ", response.data[1].id);
                 console.log("Record ID - ", response.data[2].id);
