@@ -25,36 +25,13 @@ function getNBU(){
 
 ZOHO.embeddedApp.init().then(() => {
 
-    ZOHO.embeddedApp.on("PageLoad",function(data){
-        ZOHO.CRM.API.getRecord({
-            Entity:data.Entity,
-            RecordID:data.EntityId[0]
-        }).then(response => {
-            if (response && response.data && response.data.length > 0) {
-                const deal = response.data[0];
-                //recordId = response.data[0]
-
-                // Ищем поле с курсом
-                let dealRate = null;
-
-                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal['Currency_Rate']);
-                }
-
-                if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                    calculateDifference(dealRate, nbuRate);
-                } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
-                }
-            }
-        }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
-        });
+    ZOHO.embeddedApp.on("PageLoad", function(data) {
+        recordId = data.EntityId[0]; // Первый ID из массива
+        console.log("ID через PageLoad:", recordId);
+        console.log("Тип сущности:", data.Entity);
     });
 
-
-    /*ZOHO.CRM.API.getRecord({
+    ZOHO.CRM.API.getRecord({
         Entity: "Deals"
     }).then(response => {
         if (response && response.data && response.data.length > 0) {
@@ -77,7 +54,7 @@ ZOHO.embeddedApp.init().then(() => {
         }
     }).catch(err => {
         document.getElementById("dealRate").textContent = "Помилка";
-    });*/
+    });
 
 }).catch(err => {
     document.getElementById("dealRate").textContent = "Помилка SDK";
