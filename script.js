@@ -26,6 +26,16 @@ function getNBU() {
 }
 
 function updateNbuRate() {
+    if (!nbuRate) {
+        alert("Курс НБУ ще не завантажено");
+        return;
+    }
+
+    if (!recordId) {
+        alert("ID записи не визначено");
+        return;
+    }
+
     ZOHO.CRM.API.updateRecord({
         Entity: entityName,
         RecordID: recordId,
@@ -38,6 +48,8 @@ function updateNbuRate() {
         dealRate = nbuRate;
         document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
         calculateDifference(nbuRate, dealRate);
+
+        alert("Курс успішно оновлено!");
         //ZOHO.CRM.UI.Record.refresh();
     });
 }
