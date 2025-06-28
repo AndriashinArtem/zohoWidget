@@ -23,38 +23,49 @@ function getNBU(){
         });
 }
 
-ZOHO.embeddedApp.init().then(() => {
+ZOHO.embeddedApp.init()
+    .then(() => {
+        console.log("✅ SDK инициализирован успешно");
 
-    ZOHO.embeddedApp.on("PageLoad", function(data) {
-        recordId = data.EntityId[0]; // Первый ID из массива
-        console.log("ID через PageLoad:", recordId);
-        console.log("Тип сущности:", data.Entity);
-    });
+        /*ZOHO.embeddedApp.on("PageLoad", function(data) {
+            console.log("🎯 СОБЫТИЕ PageLoad СРАБОТАЛО!");
+            console.log("Данные события:", data);
+            console.log("EntityId:", data.EntityId);
+            console.log("Entity:", data.Entity);
 
-    ZOHO.CRM.API.getRecord({
-        Entity: "Deals"
-    }).then(response => {
-        if (response && response.data && response.data.length > 0) {
-            const deal = response.data[0];
-            //recordId = response.data[0]
-
-            // Ищем поле с курсом
-            let dealRate = null;
-
-            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                dealRate = parseFloat(deal['Currency_Rate']);
-            }
-
-            if (dealRate && !isNaN(dealRate)) {
-                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                calculateDifference(dealRate, nbuRate);
+            if (data.EntityId && data.EntityId.length > 0) {
+                const recordId = data.EntityId[0];
+                console.log("✅ ID записи получен:", recordId);
             } else {
-                document.getElementById("dealRate").textContent = "Поле не знайдено";
+                console.log("❌ EntityId пустой или отсутствует");
             }
-        }
-    }).catch(err => {
-        document.getElementById("dealRate").textContent = "Помилка";
-    });
+        });*/
+
+        ZOHO.CRM.API.getRecord({
+            Entity: "Deals",
+            RecordId: "862445000000512257"
+        }).then(response => {
+            if (response && response.data && response.data.length > 0) {
+                const deal = response.data[0];
+                //recordId = response.data[0]
+
+                // Ищем поле с курсом
+                let dealRate = null;
+
+                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                    dealRate = parseFloat(deal['Currency_Rate']);
+                }
+
+                if (dealRate && !isNaN(dealRate)) {
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                    calculateDifference(dealRate, nbuRate);
+                } else {
+                    document.getElementById("dealRate").textContent = "Поле не знайдено";
+                }
+            }
+        }).catch(err => {
+            document.getElementById("dealRate").textContent = "Помилка";
+        });
 
 }).catch(err => {
     document.getElementById("dealRate").textContent = "Помилка SDK";
