@@ -1,5 +1,8 @@
 const NBU_API = "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json";
 let nbuRate = null;
+let recordId = null
+
+getNBU();
 
 function calculateDifference(dealRate, nbuRate) {
     if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
@@ -7,7 +10,6 @@ function calculateDifference(dealRate, nbuRate) {
         document.getElementById("difference").textContent = diff.toFixed(2) + " %";
     }
 }
-
 
 function getNBU(){
     fetch(NBU_API)
@@ -20,42 +22,39 @@ function getNBU(){
             document.getElementById("nbuRate").textContent = "Помилка";
         });
 }
-// Инициализация
+
 ZOHO.embeddedApp.init().then(() => {
 
-    ZOHO.embeddedApp.on("PageLoad", function(data) {
-        const recordId = data.EntityId;
-        console.log("ID записи:", recordId);
-        document.getElementById("recordId").textContent = recordId;
-    });
+    ZOHO.embeddedApp.get("PAGE.ENTITY").then(pageData => {
+        recordId = pageData.EntityId;
+        console.log("Record ID - ", recordId)
 
-    // Получаем данные сделки
-    ZOHO.CRM.API.getRecord({
-        Entity: "Deals"
-    }).then(response => {
-        if (response && response.data && response.data.length > 0) {
-            const deal = response.data[0];
+        ZOHO.CRM.API.getRecord({
+            Entity: "Deals",
+            RecordID: recordId
+        }).then(response => {
+            if (response && response.data && response.data.length > 0) {
+                const deal = response.data[0];
 
-            // Ищем поле с курсом
-            let dealRate = null;
+                // Ищем поле с курсом
+                let dealRate = null;
 
-            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                dealRate = parseFloat(deal['Currency_Rate']);
+                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                    dealRate = parseFloat(deal['Currency_Rate']);
+                }
+
+                if (dealRate && !isNaN(dealRate)) {
+                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                    calculateDifference(dealRate, nbuRate);
+                } else {
+                    document.getElementById("dealRate").textContent = "Поле не знайдено";
+                }
             }
-
-            if (dealRate && !isNaN(dealRate)) {
-                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                calculateDifference(dealRate, nbuRate);
-            } else {
-                document.getElementById("dealRate").textContent = "Поле не знайдено";
-            }
-        }
-    }).catch(err => {
-        document.getElementById("dealRate").textContent = "Помилка";
+        }).catch(err => {
+            document.getElementById("dealRate").textContent = "Помилка";
+        });
     });
 
 }).catch(err => {
     document.getElementById("dealRate").textContent = "Помилка SDK";
 });
-
-getNBU();
