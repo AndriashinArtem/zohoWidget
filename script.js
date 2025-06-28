@@ -27,19 +27,22 @@ ZOHO.embeddedApp.init()
     .then(() => {
         console.log("✅ SDK инициализирован успешно");
 
-        /*ZOHO.embeddedApp.on("PageLoad", function(data) {
+        ZOHO.embeddedApp.on("PageLoad", function(data) {
             console.log("🎯 СОБЫТИЕ PageLoad СРАБОТАЛО!");
             console.log("Данные события:", data);
             console.log("EntityId:", data.EntityId);
             console.log("Entity:", data.Entity);
 
-            if (data.EntityId && data.EntityId.length > 0) {
+            const recordId = data.EntityId[0];
+            console.log("✅ ID записи получен:", recordId);
+
+            /*if (data.EntityId && data.EntityId.length > 0) {
                 const recordId = data.EntityId[0];
                 console.log("✅ ID записи получен:", recordId);
             } else {
                 console.log("❌ EntityId пустой или отсутствует");
-            }
-        });*/
+            }*/
+        });
 
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
@@ -47,10 +50,6 @@ ZOHO.embeddedApp.init()
         }).then(response => {
             if (response && response.data[0]) {
                 const deal = response.data[0];
-                //recordId = response.data[0].id;
-                console.log("RECORDS ID:")
-                console.log("Record ID - ", response.data[0].id);
-                // Ищем поле с курсом
                 let dealRate = null;
 
                 if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
