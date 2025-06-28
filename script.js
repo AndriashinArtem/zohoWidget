@@ -27,7 +27,7 @@ ZOHO.embeddedApp.init().then(() => {
     console.log("✅ SDK инициализирован успешно");
 
     ZOHO.embeddedApp.on("PageLoad", function(data) {
-        recordId = data.EntityId;
+        recordId = data.EntityId[0];
         console.log("📌 Record ID:", recordId);
     });
 
