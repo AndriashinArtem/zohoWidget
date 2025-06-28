@@ -11,7 +11,7 @@ function calculateDifference(dealRate, nbuRate) {
     }
 }
 
-function getNBU(){
+function getNBU() {
     fetch(NBU_API)
         .then(res => res.json())
         .then(data => {
@@ -27,46 +27,33 @@ ZOHO.embeddedApp.init()
     .then(() => {
         console.log("✅ SDK инициализирован успешно");
 
-        ZOHO.embeddedApp.on("PageLoad", function(data) {
-            console.log("🎯 СОБЫТИЕ PageLoad СРАБОТАЛО!");
-            console.log("Данные события:", data);
-            console.log("EntityId:", data.EntityId);
-            console.log("Entity:", data.Entity);
+        ZOHO.embeddedApp.on("PageLoad", function (data) {
+            console.log("Получен ID:", data.EntityId);
 
-            const recordId = data.EntityId[0];
-            console.log("✅ ID записи получен:", recordId);
+            ZOHO.CRM.API.getRecord({
+                Entity: "Deals",
+                RecordID: data.EntityId
+            }).then(response => {
+                if (response && response.data[0]) {
+                    const deal = response.data[0];
+                    let dealRate = null;
 
-            /*if (data.EntityId && data.EntityId.length > 0) {
-                const recordId = data.EntityId[0];
-                console.log("✅ ID записи получен:", recordId);
-            } else {
-                console.log("❌ EntityId пустой или отсутствует");
-            }*/
+                    if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                        dealRate = parseFloat(deal['Currency_Rate']);
+                    }
+
+                    if (dealRate && !isNaN(dealRate)) {
+                        document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                        calculateDifference(dealRate, nbuRate);
+                    } else {
+                        document.getElementById("dealRate").textContent = "Поле не знайдено";
+                    }
+                }
+            }).catch(err => {
+                document.getElementById("dealRate").textContent = "Помилка";
+            });
         });
 
-        ZOHO.CRM.API.getRecord({
-            Entity: "Deals",
-            RecordID: "862445000000518273"
-        }).then(response => {
-            if (response && response.data[0]) {
-                const deal = response.data[0];
-                let dealRate = null;
-
-                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal['Currency_Rate']);
-                }
-
-                if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                    calculateDifference(dealRate, nbuRate);
-                } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
-                }
-            }
-        }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
-        });
-
-}).catch(err => {
+    }).catch(err => {
     document.getElementById("dealRate").textContent = "Помилка SDK";
 });
