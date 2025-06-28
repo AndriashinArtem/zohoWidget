@@ -43,12 +43,14 @@ ZOHO.embeddedApp.init()
 
         ZOHO.CRM.API.getRecord({
             Entity: "Deals",
-            RecordId: "862445000000512257"
         }).then(response => {
             if (response && response.data && response.data.length > 0) {
                 const deal = response.data[0];
-                //recordId = response.data[0]
-
+                //recordId = response.data[0].id;
+                console.log("RECORDS ID:")
+                console.log("Record ID - ", response.data[0].id);
+                console.log("Record ID - ", response.data[1].id);
+                console.log("Record ID - ", response.data[2].id);
                 // Ищем поле с курсом
                 let dealRate = null;
 
