@@ -25,34 +25,29 @@ function getNBU(){
 
 ZOHO.embeddedApp.init().then(() => {
 
-    ZOHO.embeddedApp.get("PAGE.ENTITY").then(pageData => {
-        recordId = pageData.EntityId;
-        console.log("Record ID - ", recordId)
+    ZOHO.CRM.API.getRecord({
+        Entity: "Deals",
+        RecordID: recordId
+    }).then(response => {
+        if (response && response.data && response.data.length > 0) {
+            const deal = response.data[0];
 
-        ZOHO.CRM.API.getRecord({
-            Entity: "Deals",
-            RecordID: recordId
-        }).then(response => {
-            if (response && response.data && response.data.length > 0) {
-                const deal = response.data[0];
+            // Ищем поле с курсом
+            let dealRate = null;
 
-                // Ищем поле с курсом
-                let dealRate = null;
-
-                if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
-                    dealRate = parseFloat(deal['Currency_Rate']);
-                }
-
-                if (dealRate && !isNaN(dealRate)) {
-                    document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                    calculateDifference(dealRate, nbuRate);
-                } else {
-                    document.getElementById("dealRate").textContent = "Поле не знайдено";
-                }
+            if (deal['Currency_Rate'] !== undefined && deal['Currency_Rate'] !== null) {
+                dealRate = parseFloat(deal['Currency_Rate']);
             }
-        }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилка";
-        });
+
+            if (dealRate && !isNaN(dealRate)) {
+                document.getElementById("dealRate").textContent = dealRate.toFixed(2);
+                calculateDifference(dealRate, nbuRate);
+            } else {
+                document.getElementById("dealRate").textContent = "Поле не знайдено";
+            }
+        }
+    }).catch(err => {
+        document.getElementById("dealRate").textContent = "Помилка";
     });
 
 }).catch(err => {
