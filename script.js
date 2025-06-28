@@ -24,14 +24,23 @@ function getNBU() {
         });
 }
 
+function updateNbuRate() {
+    ZOHO.CRM.API.updateRecord({
+        Entity: entityName,
+        RecordID: recordId,
+        APIData: {
+            Currency_Rate: nbuRate
+        }
+    });
+}
+
 ZOHO.embeddedApp.on("PageLoad", function (data) {
+
     recordId = data.EntityId;
-    console.log("Record ID:", recordId);
     entityName = data.Entity;
-    console.log("Record ID:", entityName);
 
     ZOHO.CRM.API.getRecord({
-        Entity: "Deals",
+        Entity: entityName,
         RecordID: recordId
     }).then(response => {
         if (response && response.data[0]) {
@@ -52,6 +61,8 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     }).catch(err => {
         document.getElementById("dealRate").textContent = "Помилка";
     });
+
+    function asd(){}
 });
 
 ZOHO.embeddedApp.init();
