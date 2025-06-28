@@ -27,12 +27,15 @@ ZOHO.embeddedApp.init()
     .then(() => {
         console.log("✅ SDK инициализирован успешно");
 
-        ZOHO.embeddedApp.on("PageLoad", function (data) {
-            console.log("Получен ID:", data.EntityId);
+        ZOHO.embeddedApp.on('PageLoad', function(data){
+            console.log("Page Loaded...")
+            console.log(data);
+            console.log("Entity Name is :::::");
+            console.log(data.Entity);
 
             ZOHO.CRM.API.getRecord({
                 Entity: "Deals",
-                RecordID: data.EntityId
+                RecordID: data.RecordID
             }).then(response => {
                 if (response && response.data[0]) {
                     const deal = response.data[0];
