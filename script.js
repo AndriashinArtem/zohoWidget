@@ -25,7 +25,7 @@ function getNBU() {
         });
 }
 
-function updateNbuRate() {
+function updateDealRate() {
     if (!nbuRate) {
         alert("Курс НБУ ще не завантажено");
         return;
