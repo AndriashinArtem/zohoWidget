@@ -8,10 +8,8 @@ function calculateDifference(dealRate, nbuRate) {
     }
 }
 
-// Инициализация
-ZOHO.embeddedApp.init().then(() => {
 
-    // Получаем курс НБУ
+function getNBU(){
     fetch(NBU_API)
         .then(res => res.json())
         .then(data => {
@@ -21,6 +19,22 @@ ZOHO.embeddedApp.init().then(() => {
         .catch(err => {
             document.getElementById("nbuRate").textContent = "Помилка";
         });
+}
+// Инициализация
+ZOHO.embeddedApp.init().then(() => {
+
+    // Получаем курс НБУ
+    /*fetch(NBU_API)
+        .then(res => res.json())
+        .then(data => {
+            nbuRate = data[0].rate;
+            document.getElementById("nbuRate").textContent = nbuRate.toFixed(4);
+        })
+        .catch(err => {
+            document.getElementById("nbuRate").textContent = "Помилка";
+        });
+*/
+    getNBU();
 
     // Получаем данные сделки
     ZOHO.CRM.API.getRecord({
