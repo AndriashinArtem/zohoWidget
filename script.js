@@ -45,7 +45,7 @@ ZOHO.embeddedApp.init()
             Entity: "Deals",
             RecordID: "862445000000518273"
         }).then(response => {
-            if (response && response.data[0] && response.data[0].length > 0) {
+            if (response && response.data[0]) {
                 const deal = response.data[0];
                 //recordId = response.data[0].id;
                 console.log("RECORDS ID:")
