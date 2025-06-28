@@ -26,7 +26,7 @@ function getNBU(){
 ZOHO.embeddedApp.init().then(() => {
 
     ZOHO.CRM.API.getRecord({
-        Entity: "Deals",
+        Entity: "Deals"
 
     }).then(response => {
         if (response && response.data && response.data.length > 0) {
