@@ -49,7 +49,6 @@ ZOHO.embeddedApp.init()
                 const deal = response.data;
                 //recordId = response.data[0].id;
                 console.log("RECORDS ID:")
-                console.log("Record ID - ", response.data.id);
                 console.log("Record ID - ", response.data[0].id);
                 console.log("Record ID - ", response.data[1].id);
                 console.log("Record ID - ", response.data[2].id);
