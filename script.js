@@ -60,11 +60,9 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     recordId = data.EntityId;
     entityName = data.Entity;
 
-    getNBU().then(() => {
-        return ZOHO.CRM.API.getRecord({
-            Entity: entityName,
-            RecordID: recordId
-        });
+    ZOHO.CRM.API.getRecord({
+        Entity: entityName,
+        RecordID: recordId
     }).then(response => {
         if (response && response.data[0]) {
             const deal = response.data[0];
@@ -75,7 +73,9 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
 
             if (dealRate && !isNaN(dealRate)) {
                 document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                calculateDifference(dealRate, nbuRate);
+                getNBU().then(() => {
+                    calculateDifference(dealRate, nbuRate);
+                });
             }
         }
     }).catch(err => {
