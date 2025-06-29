@@ -8,7 +8,7 @@ getNBU();
 
 function calculateDifference(dealRate, nbuRate) {
     if (dealRate && nbuRate) {
-        const diff = ((dealRate / nbuRate) - nbuRate) * 100;
+        const diff = ((dealRate / nbuRate) - 1) * 100;
         document.getElementById("difference").textContent = diff.toFixed(2) + " %";
 
         const updateButton = document.getElementById("updateButton");
