@@ -50,7 +50,7 @@ function updateDealRate() {
             calculateDifference(nbuRate, dealRate);
             console.log("Оновлення виконано успішно");
         }).catch(err => {
-            document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
+            document.getElementById("dealRate").textContent = "Помилки при оновленні поля в CRM";
             console.error("Помилка при оновленні CRM:", err);
         });
     });
