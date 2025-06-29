@@ -10,29 +10,30 @@ function calculateDifference(dealRate, nbuRate) {
     if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
         const diff = ((dealRate - nbuRate) / nbuRate) * 100;
         document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+        const updateButton = document.getElementById("updateButton");
+
+        if(Math.abs(diff) > 5){
+            updateButton.style.display = "block";
+        }else{
+            updateButton.style.display = "none";
+        }
     }
 }
 
 function getNBU() {
     fetch(NBU_API)
-        .then(res => res.json())
+        .then(response => response.json())
         .then(data => {
             nbuRate = data[0].rate;
             document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
         })
         .catch(err => {
-            document.getElementById("nbuRate").textContent = "Помилка";
+            document.getElementById("nbuRate").textContent = "Неможливості отримати курс НБУ";
         });
 }
 
 function updateDealRate() {
-    if (!nbuRate) {
-        alert("Курс НБУ ще не завантажено");
-        return;
-    }
-
-    if (!recordId) {
-        alert("ID записи не визначено");
+    if (!nbuRate || !recordId) {
         return;
     }
 
@@ -42,20 +43,16 @@ function updateDealRate() {
             id: recordId,
             Currency_Rate: nbuRate
         }
-    }).then(response => {
-        console.log("Успешно обновлено:", response);
-
+    }).then(()=> {
         dealRate = nbuRate;
         document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
         calculateDifference(nbuRate, dealRate);
-
-        alert("Курс успішно оновлено!");
-        //ZOHO.CRM.UI.Record.refresh();
+    }).catch(err => {
+        document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
     });
 }
 
 ZOHO.embeddedApp.on("PageLoad", function (data) {
-
     recordId = data.EntityId;
     entityName = data.Entity;
 
@@ -73,15 +70,11 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
             if (dealRate && !isNaN(dealRate)) {
                 document.getElementById("dealRate").textContent = dealRate.toFixed(2);
                 calculateDifference(dealRate, nbuRate);
-            } else {
-                document.getElementById("dealRate").textContent = "Поле не знайдено";
             }
         }
     }).catch(err => {
-        document.getElementById("dealRate").textContent = "Помилка";
+        document.getElementById("dealRate").textContent = "Помилка отримання даних";
     });
-
-    function asd(){}
 });
 
 ZOHO.embeddedApp.init();
