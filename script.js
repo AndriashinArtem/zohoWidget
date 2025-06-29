@@ -26,6 +26,7 @@ function getNBU() {
         .then(data => {
             nbuRate = data[0].rate;
             document.getElementById("nbuRate").textContent = nbuRate.toFixed(2);
+            console.log("Курс НБУ отримано:", nbuRate);
         })
         .catch(err => {
             document.getElementById("nbuRate").textContent = "Неможливості отримати курс НБУ";
@@ -33,22 +34,24 @@ function getNBU() {
 }
 
 function updateDealRate() {
-    if (!nbuRate || !recordId) {
-        return;
-    }
+    document.getElementById("updateBtn").addEventListener("click", () => {
+        console.log("Кнопка 'Оновити' натиснута");
 
-    ZOHO.CRM.API.updateRecord({
-        Entity: entityName,
-        APIData: {
-            id: recordId,
-            Currency_Rate: nbuRate
-        }
-    }).then(()=> {
-        dealRate = nbuRate;
-        document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
-        calculateDifference(nbuRate, dealRate);
-    }).catch(err => {
-        document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
+        ZOHO.CRM.API.updateRecord({
+            Entity: entityName,
+            APIData: {
+                id: recordId,
+                Currency_Rate: nbuRate
+            }
+        }).then(() => {
+            dealRate = nbuRate;
+            document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
+            calculateDifference(nbuRate, dealRate);
+            console.log("Оновлення виконано успішно");
+        }).catch(err => {
+            document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
+            console.error("Помилка при оновленні CRM:", err);
+        });
     });
 }
 
