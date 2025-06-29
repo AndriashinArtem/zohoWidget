@@ -34,7 +34,7 @@ function getNBU() {
 }
 
 function updateDealRate() {
-    document.getElementById("updateBtn").addEventListener("click", () => {
+    document.getElementById("updateButton").addEventListener("click", () => {
         console.log("Кнопка 'Оновити' натиснута");
 
         ZOHO.CRM.API.updateRecord({
