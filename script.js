@@ -50,7 +50,7 @@ function updateDealRate() {
             calculateDifference(nbuRate, dealRate);
             console.log("Оновлення виконано успішно");
         }).catch(err => {
-            document.getElementById("dealRate").textContent = "Помилки при оновленні поля в CRM";
+            document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
             console.error("Помилка при оновленні CRM:", err);
         });
     });
@@ -73,9 +73,7 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
 
             if (dealRate && !isNaN(dealRate)) {
                 document.getElementById("dealRate").textContent = dealRate.toFixed(2);
-                getNBU().then(() => {
-                    calculateDifference(dealRate, nbuRate);
-                });
+                calculateDifference(dealRate, nbuRate);
             }
         }
     }).catch(err => {
