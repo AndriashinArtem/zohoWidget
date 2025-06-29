@@ -7,9 +7,10 @@ let entityName = null;
 getNBU();
 
 function calculateDifference(dealRate, nbuRate) {
-    if (dealRate && nbuRate && !isNaN(dealRate) && !isNaN(nbuRate)) {
-        const diff = ((dealRate - nbuRate) / nbuRate) * 100;
+    if (dealRate && nbuRate) {
+        const diff = ((dealRate / nbuRate) - nbuRate) * 100;
         document.getElementById("difference").textContent = diff.toFixed(2) + " %";
+
         const updateButton = document.getElementById("updateButton");
 
         if(Math.abs(diff) > 5){
@@ -59,9 +60,11 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     recordId = data.EntityId;
     entityName = data.Entity;
 
-    ZOHO.CRM.API.getRecord({
-        Entity: entityName,
-        RecordID: recordId
+    getNBU().then(() => {
+        return ZOHO.CRM.API.getRecord({
+            Entity: entityName,
+            RecordID: recordId
+        });
     }).then(response => {
         if (response && response.data[0]) {
             const deal = response.data[0];
