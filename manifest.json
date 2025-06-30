@@ -1,8 +1,0 @@
-{
-  "widgetName": TestWidget"",
-  "widgetVersion": "1.0",
-  "widgetType": "relatedlist",
-  "modules": ["Deals"],
-  "entryFile": "index.html",
-  "description": "Тестовий віджет"
-}
