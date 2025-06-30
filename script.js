@@ -57,7 +57,9 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     entityName = data.Entity;
 
     getNBU();
-    document.getElementById("updateButton").addEventListener("click", updateDealRate);
+    const updateButton = document.getElementById("updateButton");
+    updateButton.removeEventListener("click", updateDealRate);
+    updateButton.addEventListener("click", updateDealRate);
     
     ZOHO.CRM.API.getRecord({
         Entity: entityName,
