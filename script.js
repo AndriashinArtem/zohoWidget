@@ -44,7 +44,7 @@ function updateDealRate() {
     }).then(() => {
         dealRate = nbuRate;
         document.getElementById("dealRate").textContent = nbuRate.toFixed(2);
-        calculateDifference(nbuRate, dealRate);
+        calculateDifference(dealRate, nbuRate);
         console.log("Оновлення виконано успішно");
     }).catch(err => {
         document.getElementById("nbuRate").textContent = "Помилки при оновленні поля в CRM";
