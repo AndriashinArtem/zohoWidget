@@ -4,8 +4,6 @@ let dealRate = null;
 let recordId = null;
 let entityName = null;
 
-getNBU();
-
 function calculateDifference(dealRate, nbuRate) {
     if (dealRate && nbuRate) {
         const diff = ((dealRate / nbuRate) - 1) * 100;
@@ -58,6 +56,9 @@ ZOHO.embeddedApp.on("PageLoad", function (data) {
     recordId = data.EntityId;
     entityName = data.Entity;
 
+    getNBU();
+    document.getElementById("updateButton").addEventListener("click", updateDealRate);
+    
     ZOHO.CRM.API.getRecord({
         Entity: entityName,
         RecordID: recordId
